@@ -1,8 +1,6 @@
 package config
 
 type Options struct {
-	Address  string `env:"ADDRESS"`
-	Filename string `env:"FILE_STORAGE_PATH"`
-	DBDSN    string `env:"DATABASE_DSN"`
-	Key      string `env:"KEY"`
+	Host string `env:"SERV_HOST" envDefault:"localhost"`
+	Port string `env:"SERV_PORT" envDefault:"8080"`
 }

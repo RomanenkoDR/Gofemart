@@ -14,10 +14,10 @@ func InitRouter(cfg config.Options, h handler.Handler) (chi.Router, error) {
 	// Use router
 	router.Use(middleware.LogHandler)
 
-	router.Route("/api/users", func(r chi.Router) {
+	router.Route("/api/user", func(r chi.Router) {
 
 		r.Post("/register", handler.Register)
-		r.Post("/logger", handler.Login)
+		r.Post("/login", handler.Login)
 		r.Post("/orders", handler.OrdersGet)
 		r.Post("/balance/withdraw", handler.Withdraw)
 
