@@ -1,0 +1,7 @@
+{"level":"info","ts":1731673261.451047,"msg":"uri /api/user/login method POST status 401 duration 24.792875ms size 15"}
+{"level":"info","ts":1731673278.841537,"msg":"uri /api/user/login method POST status 401 duration 5.763125ms size 15"}
+{"level":"info","ts":1731673302.295449,"msg":"uri /api/user/login method POST status 401 duration 5.135417ms size 15"}
+{"level":"info","ts":1731673313.899188,"msg":"uri /api/user/login method POST status 401 duration 2.398542ms size 15"}
+{"level":"info","ts":1731673323.322881,"msg":"uri /api/user/register method POST status 409 duration 3.324375ms size 19"}
+{"level":"info","ts":1731673337.765484,"msg":"uri /api/user/login method POST status 401 duration 9.405167ms size 15"}
+{"level":"info","ts":1731673349.0055401,"msg":"uri /api/user/login method POST status 401 duration 2.626208ms size 15"}

@@ -16,9 +16,9 @@ func InitRouter(cfg config.Options, h handler.Handler) (chi.Router, error) {
 
 	router.Route("/api/user", func(r chi.Router) {
 
-		r.Post("/register", handler.Register)
+		r.Post("/regisчter", handler.Register)
 		r.Post("/login", handler.Login)
-		r.Post("/orders", handler.OrdersGet)
+		r.Post("/orders", handler.OrdersPost)
 		r.Post("/balance/withdraw", handler.Withdraw)
 
 		r.Get("/orders", handler.OrdersGet)

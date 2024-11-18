@@ -1,13 +1,11 @@
-package utils
+package models
 
-import (
-	"golang.org/x/crypto/bcrypt"
-)
+import "golang.org/x/crypto/bcrypt"
 
 type User struct {
-	ID       int64  `json:"id"`
-	Login    string `json:"login"`
-	Password string `json:"password,omitempty"`
+	ID       uint64 `gorm:"primary_key"`
+	Login    string `gorm:"unique;not null"`
+	Password string `gorm:"not null"`
 }
 
 func (u *User) HashPassword() error {

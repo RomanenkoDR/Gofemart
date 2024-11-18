@@ -1,44 +1,41 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/RomanenkoDR/Gofemart/iternal/models"
+	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
-func InitDB() (*sql.DB, error) {
+func InitDB() (*gorm.DB, error) {
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbName := os.Getenv("DB_NAME")
 
+	// Проверяем наличие обязательных переменных окружения
+	if dbHost == "" || dbPort == "" || dbUser == "" || dbPass == "" || dbName == "" {
+		return nil, fmt.Errorf("database configuration is incomplete, check environment variables")
+	}
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPass, dbName)
-	fmt.Println("Connecting to DB...", connStr)
-	db, err := sql.Open("postgres", connStr)
+
+	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
 
-	createTableQuery := `
-	CREATE TABLE IF NOT EXISTS users (
-		id SERIAL PRIMARY KEY,
-		login VARCHAR(255) UNIQUE NOT NULL,
-		password VARCHAR(255) NOT NULL
-	);`
-
-	_, err = db.Exec(createTableQuery)
+	// Автоматическое создание таблиц
+	err = db.AutoMigrate(&models.User{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create table: %w", err)
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	log.Println("Successfully connected to database")
+	log.Println("Successfully connected to the database with GORM")
 	return db, nil
 }

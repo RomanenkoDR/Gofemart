@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"database/sql"
 	"encoding/json"
-	"github.com/RomanenkoDR/Gofemart/iternal/utils"
+	"github.com/RomanenkoDR/Gofemart/iternal/models"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +13,7 @@ import (
 
 var (
 	jwtKey   []byte
-	database *sql.DB
+	database *gorm.DB
 )
 
 func initJwtKey() {
@@ -24,8 +24,8 @@ func initJwtKey() {
 	jwtKey = []byte(key)
 }
 
-func SetDatabase(db *sql.DB) {
-	database = db // Устанавливаем глобальную переменную
+func SetDatabase(db *gorm.DB) {
+	database = db
 }
 
 type Claims struct {
@@ -34,7 +34,7 @@ type Claims struct {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	var user utils.User
+	var user models.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil || user.Login == "" || user.Password == "" {
@@ -42,22 +42,29 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, err := isLoginExists(user.Login)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	if exists {
-		http.Error(w, "User already taken", http.StatusConflict)
-		return
-	}
-
-	err = saveUserToDB(user)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	// Проверка существования пользователя
+	var existingUser models.User
+	result := database.Where("login = ?", user.Login).First(&existingUser)
+	if result.RowsAffected > 0 {
+		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
 
+	// Хэшируем пароль (предполагается, что метод `HashPassword` уже существует)
+	err = user.HashPassword()
+	if err != nil {
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	// Сохранение пользователя
+	err = database.Create(&user).Error
+	if err != nil {
+		http.Error(w, "Failed to save user", http.StatusInternalServerError)
+		return
+	}
+
+	// Генерация токена
 	tokenString, err := generateJWT(user.Login)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -70,19 +77,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 	w.WriteHeader(http.StatusOK)
-}
-
-func isLoginExists(login string) (bool, error) {
-	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM users WHERE login=$1)"
-	err := database.QueryRow(query, login).Scan(&exists)
-	return exists, err
-}
-
-func saveUserToDB(user utils.User) error {
-	_, err := database.Exec("INSERT INTO users (login, password) VALUES ($1, $2)", user.Login, user.Password)
-	return err
-
 }
 
 func generateJWT(username string) (string, error) {
