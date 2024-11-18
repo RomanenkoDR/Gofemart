@@ -14,11 +14,13 @@ import (
 
 func main() {
 
+	// Загрузка параметров системы референции
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
 
+	// Инициализация hanlder
 	h := handler.NewHandler()
 	port := os.Getenv("PORT")
 	host := os.Getenv("HOST")
@@ -27,12 +29,15 @@ func main() {
 		Host: host,
 	}
 
+	// Инициализация router
 	router, err := router.InitRouter(cfg, h)
 	if err != nil {
 		log.Fatalf("Error initializing router: %v", err)
 	}
+
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 
+	// Инициализация DB
 	db, err := db.InitDB() // Инициализация соединения с базой данных
 	if err != nil {
 		log.Fatal("Failed to initialize the database:", err)
