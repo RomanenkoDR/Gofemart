@@ -2,6 +2,7 @@ package models
 
 import "golang.org/x/crypto/bcrypt"
 
+// User Структура таблицы пользователей
 type User struct {
 	ID       uint64 `gorm:"primary_key"`
 	Login    string `gorm:"unique;not null"`
@@ -18,5 +19,6 @@ func (u *User) HashPassword() error {
 }
 
 func (u *User) CheckPassword(password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)) == nil
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return err == nil
 }

@@ -2,70 +2,61 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/RomanenkoDR/Gofemart/iternal/config"
 	"github.com/RomanenkoDR/Gofemart/iternal/models"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/RomanenkoDR/Gofemart/iternal/services/auth"
+	"github.com/RomanenkoDR/Gofemart/iternal/services/db"
 	"gorm.io/gorm"
-	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
-var (
-	jwtKey   []byte
-	database *gorm.DB
-)
-
-func initJwtKey() {
-	key, exists := os.LookupEnv("SECRET_KEY")
-	if !exists {
-		log.Fatal("No secret key provided")
-	}
-	jwtKey = []byte(key)
-}
-
-func SetDatabase(db *gorm.DB) {
-	database = db
-}
-
-type Claims struct {
-	Username string `json:"username"`
-	jwt.RegisteredClaims
+func SetDatabase(database *gorm.DB) {
+	db.Database = database
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	var user models.User
 
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil || user.Login == "" || user.Password == "" {
+	err := json.NewDecoder(r.Body).Decode(&auth.User)
+	if err != nil || auth.User.Login == "" || auth.User.Password == "" {
 		http.Error(w, "Invalid username or password", http.StatusBadRequest)
 		return
 	}
 
 	// Проверка существования пользователя
-	var existingUser models.User
-	result := database.Where("login = ?", user.Login).First(&existingUser)
+	result := db.Database.Where("login = ?", auth.User.Login).First(&auth.ExistingUser)
 	if result.RowsAffected > 0 {
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
 
-	// Хэшируем пароль (предполагается, что метод `HashPassword` уже существует)
-	err = user.HashPassword()
+	// Хэшируем пароль
+	err = auth.User.HashPassword()
 	if err != nil {
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
 
 	// Сохранение пользователя
-	err = database.Create(&user).Error
+	err = db.Database.Create(&auth.User).Error
 	if err != nil {
 		http.Error(w, "Failed to save user", http.StatusInternalServerError)
 		return
 	}
 
+	// Создание связанной записи в таблице для нового юзера
+	newBalance := models.Balance{
+		UserID: auth.User.ID,
+	}
+
+	// Сохранение таблицы
+	err = db.Database.Create(&newBalance).Error
+	if err != nil {
+		http.Error(w, "Failed to create balance record", http.StatusInternalServerError)
+		return
+	}
 	// Генерация токена
-	tokenString, err := generateJWT(user.Login)
+	auth.JwtKey, err = config.GenerateJWT(auth.User.Login)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -73,20 +64,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "token",
-		Value:   tokenString,
+		Value:   auth.JwtKey,
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 	w.WriteHeader(http.StatusOK)
-}
-
-func generateJWT(username string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &Claims{
-		Username: username,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
 }

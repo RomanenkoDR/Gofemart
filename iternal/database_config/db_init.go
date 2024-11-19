@@ -1,4 +1,4 @@
-package db
+package database_config
 
 import (
 	"fmt"
@@ -25,17 +25,17 @@ func InitDB() (*gorm.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPass, dbName)
 
-	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Автоматическое создание таблиц (миграции)
-	err = db.AutoMigrate(&models.User{}, &models.Order{})
+	err = database.AutoMigrate(&models.User{}, &models.Order{}, &models.Balance{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	log.Println("Successfully connected to the database with GORM")
-	return db, nil
+	return database, nil
 }
