@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/RomanenkoDR/Gofemart/iternal/config"
-	"github.com/RomanenkoDR/Gofemart/iternal/db"
+	"github.com/RomanenkoDR/Gofemart/iternal/database_config"
 	"github.com/RomanenkoDR/Gofemart/iternal/handler"
 	"github.com/RomanenkoDR/Gofemart/iternal/router"
 	"github.com/joho/godotenv"
@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Инициализация DB
-	database, err := db.InitDB() // Инициализация соединения с базой данных
+	database, err := database_config.InitDB() // Инициализация соединения с базой данных
 	if err != nil {
 		log.Fatal("Failed to initialize the database:", err)
 	}

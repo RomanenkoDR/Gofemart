@@ -30,8 +30,8 @@ func InitDB() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	// Автоматическое создание таблиц
-	err = db.AutoMigrate(&models.User{})
+	// Автоматическое создание таблиц (миграции)
+	err = db.AutoMigrate(&models.User{}, &models.Order{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
