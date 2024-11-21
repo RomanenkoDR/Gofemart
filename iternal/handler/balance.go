@@ -21,14 +21,16 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем Content-Type
 	if r.Header.Get("Content-Length") != "0" {
-		http.Error(w, "некорректный Content-Length, ожидается 0", http.StatusBadRequest)
+		// TODO: хз почему надо только внутренние ошибки сервера и статус не авторизован
+		// TODO: пока поменял все выводы на внутренние ошибки сервера
+		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
 	// Получаем пользователя из базы
 	if err := db.Database.Where("login = ?", username).First(&auth.User).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
+			http.Error(w, "Пользователь не авторизован", http.StatusUnauthorized)
 			return
 		}
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
@@ -49,9 +51,7 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(balanceResponce); err != nil {
-		http.Error(w, "Ошибка при формировании ответа", http.StatusInternalServerError)
+		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 	}
 
-	// TODO: balance
-	//fmt.Print(username)
 }
