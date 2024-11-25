@@ -3,9 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/RomanenkoDR/Gofemart/iternal/services/auth"
-	"github.com/RomanenkoDR/Gofemart/iternal/services/balance"
-	"github.com/RomanenkoDR/Gofemart/iternal/services/db"
+	"github.com/RomanenkoDR/Gofemart/internal/services/auth"
+	"github.com/RomanenkoDR/Gofemart/internal/services/balance"
+	"github.com/RomanenkoDR/Gofemart/internal/services/db"
 	"gorm.io/gorm"
 	"net/http"
 )

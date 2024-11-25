@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/RomanenkoDR/Gofemart/iternal/models"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"

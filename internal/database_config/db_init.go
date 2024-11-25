@@ -2,7 +2,7 @@ package database_config
 
 import (
 	"fmt"
-	"github.com/RomanenkoDR/Gofemart/iternal/models"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

@@ -1,9 +1,9 @@
 package router
 
 import (
-	"github.com/RomanenkoDR/Gofemart/iternal/config"
-	"github.com/RomanenkoDR/Gofemart/iternal/handler"
-	"github.com/RomanenkoDR/Gofemart/iternal/middleware"
+	"github.com/RomanenkoDR/Gofemart/internal/config"
+	"github.com/RomanenkoDR/Gofemart/internal/handler"
+	"github.com/RomanenkoDR/Gofemart/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
 

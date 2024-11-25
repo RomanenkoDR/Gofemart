@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/RomanenkoDR/Gofemart/iternal/config"
-	"github.com/RomanenkoDR/Gofemart/iternal/database_config"
-	"github.com/RomanenkoDR/Gofemart/iternal/handler"
-	"github.com/RomanenkoDR/Gofemart/iternal/router"
+	"github.com/RomanenkoDR/Gofemart/internal/config"
+	"github.com/RomanenkoDR/Gofemart/internal/database_config"
+	"github.com/RomanenkoDR/Gofemart/internal/handler"
+	"github.com/RomanenkoDR/Gofemart/internal/router"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"

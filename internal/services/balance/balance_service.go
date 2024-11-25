@@ -1,7 +1,7 @@
 package balance
 
 import (
-	"github.com/RomanenkoDR/Gofemart/iternal/models"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
 )
 
 var (

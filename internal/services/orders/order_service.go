@@ -1,6 +1,6 @@
 package orders
 
-import "github.com/RomanenkoDR/Gofemart/iternal/models"
+import "github.com/RomanenkoDR/Gofemart/internal/models"
 
 var (
 	Orders        []models.Order
