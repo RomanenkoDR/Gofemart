@@ -2,15 +2,23 @@ package models
 
 import "time"
 
-// Order Структура для заказов
-type Order struct {
+var (
+	Order         orderStr
+	Orders        []orderStr
+	ExistingOrder orderStr
+)
+
+// OrderStr Order Структура для заказов
+type orderStr struct {
 	ID          uint64    `gorm:"primary_key"`
+	User        userStr   `gorm:"foreigner:UserID"`
+	UserID      uint64    `gorm:"not null"`
 	OrderNumber string    `gorm:"unique;not null"`
 	Status      string    `gorm:"default:'NEW'"`
-	UserID      uint64    `gorm:"not null"`
-	User        User      `gorm:"foreigner:UserID"`
-	UploadedAt  time.Time `gorm:"autoCreateTime"`
 	Accrual     *float64  `gorm:"default:null"`
+	Sum         *float64  `gorm:"default:null"`
+	UploadedAt  time.Time `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
 
 type StatusOrder struct {

@@ -225,3 +225,8 @@
 {"level":"info","ts":1732046387.5692952,"msg":"uri /api/user/balance method GET status 401 duration 16.715458ms size 43"}
 {"level":"info","ts":1732046410.1190138,"msg":"uri /api/user/orders method GET status 200 duration 18.206875ms size 294"}
 {"level":"info","ts":1732046418.873656,"msg":"uri /api/user/balance method GET status 500 duration 11.33625ms size 49"}
+{"level":"info","ts":1732532428.241411,"msg":"uri /api/user/register method POST status 200 duration 113.2995ms size 0"}
+{"level":"info","ts":1732532460.388791,"msg":"uri /api/user/orders method POST status 202 duration 24.391375ms size 0"}
+{"level":"info","ts":1732532469.503951,"msg":"uri /api/user/orders method POST status 200 duration 12.346833ms size 91"}
+{"level":"info","ts":1732532478.01483,"msg":"uri /api/user/orders method GET status 200 duration 14.527125ms size 102"}
+{"level":"info","ts":1732532486.3243709,"msg":"uri /api/user/balance method GET status 200 duration 6.345125ms size 34"}

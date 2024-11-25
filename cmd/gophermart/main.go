@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/config"
-	"github.com/RomanenkoDR/Gofemart/internal/database_config"
+	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/handler"
 	"github.com/RomanenkoDR/Gofemart/internal/router"
 	"github.com/joho/godotenv"
@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Инициализация DB
-	database, err := database_config.InitDB() // Инициализация соединения с базой данных
+	database, err := db.InitDB() // Инициализация соединения с базой данных
 	if err != nil {
 		log.Fatal("Failed to initialize the database:", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 		}
 	}()
 
-	handler.SetDatabase(database)
+	db.SetDatabase(database)
 
 	port := os.Getenv("PORT")
 	host := os.Getenv("HOST")

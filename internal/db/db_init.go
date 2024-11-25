@@ -1,4 +1,4 @@
-package database_config
+package db
 
 import (
 	"fmt"
@@ -9,6 +9,10 @@ import (
 	"log"
 	"os"
 )
+
+func SetDatabase(database *gorm.DB) {
+	models.Database = database
+}
 
 func InitDB() (*gorm.DB, error) {
 	dbHost := os.Getenv("DB_HOST")
@@ -31,7 +35,7 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	// Автоматическое создание таблиц (миграции)
-	err = database.AutoMigrate(&models.User{}, &models.Order{}, &models.Balance{})
+	err = database.AutoMigrate(&models.User, &models.Order, &models.Balance)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}

@@ -1,19 +1,11 @@
-package auth
+package models
 
 import (
 	"errors"
 	"fmt"
-	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"
-)
-
-var (
-	Claims       jwt.MapClaims
-	User         models.User
-	JwtKey       string
-	ExistingUser models.User
 )
 
 func СheckAuthToken(r *http.Request) (string, int, error) {

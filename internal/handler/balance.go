@@ -3,9 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"github.com/RomanenkoDR/Gofemart/internal/services/auth"
-	"github.com/RomanenkoDR/Gofemart/internal/services/balance"
-	"github.com/RomanenkoDR/Gofemart/internal/services/db"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/gorm"
 	"net/http"
 )
@@ -13,7 +11,7 @@ import (
 func Balance(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем результат проверки авторизации пользователя
-	username, statusCode, err := auth.СheckAuthToken(r)
+	username, statusCode, err := models.СheckAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), statusCode)
 		return
@@ -21,14 +19,12 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем Content-Type
 	if r.Header.Get("Content-Length") != "0" {
-		// TODO: хз почему надо только внутренние ошибки сервера и статус не авторизован
-		// TODO: пока поменял все выводы на внутренние ошибки сервера
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
 	// Получаем пользователя из базы
-	if err := db.Database.Where("login = ?", username).First(&auth.User).Error; err != nil {
+	if err := models.Database.Where("login = ?", username).First(&models.User).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Пользователь не авторизован", http.StatusUnauthorized)
 			return
@@ -37,20 +33,20 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.Database.Where("user_id = ?", auth.User.ID).Find(&balance.Balance).Error
+	err = models.Database.Where("user_id = ?", models.User.ID).Find(&models.Balance).Error
 	if err != nil {
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
-	balanceResponce := map[string]interface{}{
-		"current":   balance.Balance.Current,
-		"withdrawn": balance.Balance.Withdraw,
+	balanceResponse := map[string]interface{}{
+		"current":   models.Balance.Current,
+		"withdrawn": models.Balance.Withdraw,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(balanceResponce); err != nil {
+	if err := json.NewEncoder(w).Encode(balanceResponse); err != nil {
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 	}
 
