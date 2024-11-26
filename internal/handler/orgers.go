@@ -155,11 +155,6 @@ func (h *Handler) GetOrderAccrual(w http.ResponseWriter, r *http.Request) {
 		Status: order.Status,
 	}
 
-	// Если статус "PROCESSED", добавляем количество начисленных баллов
-	if order.Status == "PROCESSED" && order.Accrual != nil {
-		response.Accrual = order.Accrual
-	}
-
 	// Отправляем успешный ответ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
