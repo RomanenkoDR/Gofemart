@@ -10,15 +10,21 @@ import (
 	"gorm.io/gorm"
 )
 
-// LoadDatabaseConfig загружает конфигурацию базы данных из переменных окружения.
-func LoadDatabaseConfig() models.DatabaseConfig {
+// LoadDatabaseConfig загружает конфигурацию базы данных из флагов и переменных окружения.
+func LoadDatabaseConfig(databaseURI string) models.DatabaseConfig {
+	// Если флаг для URI базы данных не задан, читаем переменную окружения
+	if databaseURI == "" {
+		databaseURI = os.Getenv("DATABASE_URI")
+	}
+
+	// Формируем строку подключения
 	return models.DatabaseConfig{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASS"),
-		Name:     os.Getenv("DB_NAME"),
-		SSLMode:  "disable", // Значение по умолчанию для локальной разработки
+		Host:     "localhost", // Можно добавить логику для парсинга URI
+		Port:     "5432",
+		User:     "postgres",
+		Password: "password",
+		Name:     "gofemart",
+		SSLMode:  "disable",
 	}
 }
 

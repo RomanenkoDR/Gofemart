@@ -26,7 +26,6 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 		}
 		return nil, err
 	}
-
 	return &balance, nil
 }
 

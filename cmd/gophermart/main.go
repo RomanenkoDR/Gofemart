@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"github.com/joho/godotenv" // Импортируем библиотеку godotenv
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/RomanenkoDR/Gofemart/internal/config"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
@@ -11,19 +13,33 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/router"
 )
 
+var (
+	runAddress       string
+	databaseURI      string
+	accrualSystemURI string
+)
+
 func init() {
 	// Загружаем переменные окружения из файла .env
 	if err := godotenv.Load(); err != nil {
 		log.Println("Не удалось загрузить файл .env, используются системные переменные окружения")
 	}
+	// Добавляем флаги для конфигурирования
+	flag.StringVar(&runAddress, "a", os.Getenv("RUN_ADDRESS"), "Адрес и порт сервиса (например: localhost:8080)")
+	flag.StringVar(&databaseURI, "d", os.Getenv("DATABASE_URI"), "URI подключения к базе данных")
+	flag.StringVar(&accrualSystemURI, "r", os.Getenv("ACCRUAL_SYSTEM_ADDRESS"), "Адрес системы расчёта начислений")
+
+	// Парсим флаги
+	flag.Parse()
+
 }
 
 func main() {
 	// Загрузка конфигурации сервера
-	serverConfig := config.LoadServerConfig()
+	serverConfig := config.LoadServerConfig(runAddress)
 
 	// Загрузка конфигурации базы данных
-	dbConfig := db.LoadDatabaseConfig()
+	dbConfig := db.LoadDatabaseConfig(databaseURI)
 
 	// Инициализация базы данных
 	database, err := db.ConnectDB(dbConfig)

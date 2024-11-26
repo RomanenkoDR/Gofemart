@@ -19,7 +19,7 @@ func GenerateJWT(username string) (string, error) {
 	// Получаем SECRET_KEY из переменной окружения
 	jwtKey := os.Getenv("SECRET_KEY")
 	if jwtKey == "" {
-		return "", fmt.Errorf("SECRET_KEY is not set in environment variables")
+		return "", fmt.Errorf("SECRET_KEY не установлен в переменные окружения")
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
