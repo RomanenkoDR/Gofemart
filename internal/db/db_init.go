@@ -2,44 +2,57 @@ package db
 
 import (
 	"fmt"
-	"github.com/RomanenkoDR/Gofemart/internal/models"
-	_ "github.com/lib/pq"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
 	"os"
+
+	"github.com/RomanenkoDR/Gofemart/internal/models"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func SetDatabase(database *gorm.DB) {
-	models.Database = database
+// LoadDatabaseConfig загружает конфигурацию базы данных из переменных окружения.
+func LoadDatabaseConfig() models.DatabaseConfig {
+	return models.DatabaseConfig{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASS"),
+		Name:     os.Getenv("DB_NAME"),
+		SSLMode:  "disable", // Значение по умолчанию для локальной разработки
+	}
 }
 
-func InitDB() (*gorm.DB, error) {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbName := os.Getenv("DB_NAME")
+// ConnectDB инициализирует подключение к базе данных.
+func ConnectDB(cfg models.DatabaseConfig) (*gorm.DB, error) {
+	// Формируем строку подключения
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode,
+	)
 
-	// Проверяем наличие обязательных переменных окружения
-	if dbHost == "" || dbPort == "" || dbUser == "" || dbPass == "" || dbName == "" {
-		return nil, fmt.Errorf("database configuration is incomplete, check environment variables")
-	}
-
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPass, dbName)
-
+	// Подключение к базе данных
 	database, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("не удалось подключиться к базе данных: %w", err)
 	}
 
-	// Автоматическое создание таблиц (миграции)
-	err = database.AutoMigrate(&models.User, &models.Order, &models.Balance)
-	if err != nil {
-		return nil, fmt.Errorf("failed to run migrations: %w", err)
+	// Автоматическая миграция таблиц
+	if err := database.AutoMigrate(&models.User{}, &models.Order{}, &models.Balance{}); err != nil {
+		return nil, fmt.Errorf("не удалось выполнить миграции: %w", err)
 	}
 
-	log.Println("Successfully connected to the database with GORM")
+	log.Println("Подключение к базе данных успешно установлено.")
 	return database, nil
+}
+
+// CloseDB закрывает соединение с базой данных.
+func CloseDB(database *gorm.DB) {
+	sqlDB, err := database.DB()
+	if err != nil {
+		log.Printf("Ошибка получения необработанного подключения к базе данных: %v", err)
+		return
+	}
+	if err := sqlDB.Close(); err != nil {
+		log.Printf("Ошибка при закрытии базы данных: %v", err)
+	}
 }

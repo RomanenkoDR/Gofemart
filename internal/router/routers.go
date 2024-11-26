@@ -1,31 +1,39 @@
 package router
 
 import (
-	"github.com/RomanenkoDR/Gofemart/internal/config"
 	"github.com/RomanenkoDR/Gofemart/internal/handler"
 	"github.com/RomanenkoDR/Gofemart/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
 
-func InitRouter(cfg config.Options, h handler.Handler) (chi.Router, error) {
-	// Init rout for server
-	router := chi.NewRouter()
+// SetupRouter создает и возвращает настроенный маршрутизатор.
+func SetupRouter(h *handler.Handler) *chi.Mux {
+	r := chi.NewRouter()
 
-	// Use router
-	router.Use(middleware.LogHandler)
+	// Основной middleware
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.LogHandler)
+		r.Use(middleware.GzipHandle)
 
-	// Group api/user
-	router.Route("/api/user", func(r chi.Router) {
+		// Публичные маршруты
+		r.Post("/api/user/register", h.Register) // Регистрация пользователя
+		r.Post("/api/user/login", h.Login)       // Аутентификация пользователя
 
-		r.Post("/register", handler.Register)
-		r.Post("/login", handler.Login)
-		r.Post("/orders", handler.OrdersPost)
-		r.Post("/balance/withdraw", handler.Withdraw)
+		// Приватные маршруты
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware)
 
-		r.Get("/orders", handler.OrdersGet)
-		r.Get("/balance", handler.Balance)
-		r.Get("/withdrawals", handler.Withdrawals)
+			r.Post("/api/user/orders", h.OrdersPost)         // Добавление номера заказа
+			r.Post("/api/user/balance/withdraw", h.Withdraw) // Запрос на списание баллов
+
+			r.Get("/api/user/orders", h.OrdersGet)        // Получение списка заказов пользователя
+			r.Get("/api/user/balance", h.Balance)         // Получение текущего баланса
+			r.Get("/api/user/withdrawals", h.Withdrawals) // Получение информации о выводах средств
+
+			r.Get("/api/orders/{number}", h.GetOrderAccrual) // Получение информации о расчете начисления баллов
+
+		})
 	})
 
-	return router, nil
+	return r
 }

@@ -2,46 +2,47 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/RomanenkoDR/Gofemart/internal/config"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
+	"github.com/RomanenkoDR/Gofemart/internal/services"
 	"net/http"
 	"time"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
+// Login обрабатывает аутентификацию пользователя.
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	var input models.User
 
-	// Декодируем запрос в глобальную переменную User
-	err := json.NewDecoder(r.Body).Decode(&models.User)
-	if err != nil || models.User.Login == "" || models.User.Password == "" {
+	// Декодируем данные из запроса
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.Login == "" || input.Password == "" {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	// Получаем пользователя из базы
-	err = db.GetUserByLogin(models.User.Login)
-	if err != nil {
+	storedUser := &models.User{}
+	if err := db.GetUserByLogin(h.DB, input.Login, storedUser); err != nil {
 		http.Error(w, "Invalid login or password", http.StatusUnauthorized)
 		return
 	}
 
 	// Проверяем пароль
-	if !models.CheckPassword(models.User.Password) {
+	if !services.CheckPassword(input.Password, storedUser.Password) {
 		http.Error(w, "Invalid login or password", http.StatusUnauthorized)
 		return
 	}
 
 	// Генерация JWT токена
-	models.JwtKey, err = config.GenerateJWT(models.User.Login)
+	jwtToken, err := services.GenerateJWT(storedUser.Login)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Failed to generate JWT token", http.StatusInternalServerError)
 		return
 	}
 
 	// Устанавливаем токен в cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "token",
-		Value:   models.JwtKey,
+		Value:   jwtToken,
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 	w.WriteHeader(http.StatusOK)

@@ -6,33 +6,43 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetUserByLogin Получаем id пользователя по его логину
-func GetUserByLogin(login string) error {
-	result := models.Database.Where("login = ?", login).First(&models.User)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil // Пользователь не найден
-	}
-	return result.Error
+// CreateUserWithBalance CreateUser создает пользователя и связанную запись в таблице баланса.
+func CreateUserWithBalance(db *gorm.DB, user *models.User) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		// Создаем пользователя
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+
+		// Создаем баланс пользователя
+		balance := models.Balance{UserID: user.ID}
+		if err := tx.Create(&balance).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// GetUserByLogin получает пользователя по логину.
+func GetUserByLogin(db *gorm.DB, login string, user *models.User) error {
+	return db.Where("login = ?", login).First(user).Error
 }
 
 // CheckUserExists проверяет существование пользователя.
-func CheckUserExists(login string) (bool, error) {
-	result := models.Database.Where("login = ?", login).First(&models.ExistingUser)
-	if result.RowsAffected > 0 {
-		return true, nil
-	}
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+func CheckUserExists(db *gorm.DB, login string) (bool, error) {
+	var user models.User
+	err := db.Where("login = ?", login).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
-	return false, result.Error
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-// CreateUser создает пользователя.
-func CreateUser() error {
-	return models.Database.Create(&models.User).Error
-}
-
-// CreateBalance создает баланс пользователя.
-func CreateBalance() error {
-	return models.Database.Create(&models.Balance).Error
+// GetBalanceByUserID получаем баланс пользователя по его id
+func GetBalanceByUserID(db *gorm.DB, userID uint64, balance *models.Balance) error {
+	return db.Where("user_id = ?", userID).First(balance).Error
 }
