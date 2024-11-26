@@ -1,6 +1,6 @@
 package models
 
-func ValidLuhn(orderNumber string) bool {
+func ValidLun(orderNumber string) bool {
 	var sum int
 	alt := false
 

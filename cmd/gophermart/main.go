@@ -1,67 +1,47 @@
 package main
 
 import (
-	"fmt"
+	"github.com/joho/godotenv" // Импортируем библиотеку godotenv
+	"log"
+	"net/http"
+
 	"github.com/RomanenkoDR/Gofemart/internal/config"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/handler"
 	"github.com/RomanenkoDR/Gofemart/internal/router"
-	"github.com/joho/godotenv"
-	"log"
-	"net/http"
-	"os"
 )
 
+func init() {
+	// Загружаем переменные окружения из файла .env
+	if err := godotenv.Load(); err != nil {
+		log.Println("Не удалось загрузить файл .env, используются системные переменные окружения")
+	}
+}
+
 func main() {
+	// Загрузка конфигурации сервера
+	serverConfig := config.LoadServerConfig()
 
-	// Загрузка параметров системы референции
-	err := godotenv.Load()
+	// Загрузка конфигурации базы данных
+	dbConfig := db.LoadDatabaseConfig()
+
+	// Инициализация базы данных
+	database, err := db.ConnectDB(dbConfig)
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
+	defer db.CloseDB(database)
 
-	// Инициализация DB
-	database, err := db.InitDB() // Инициализация соединения с базой данных
-	if err != nil {
-		log.Fatal("Failed to initialize the database:", err)
-	}
-	defer func() {
-		sqlDB, err := database.DB() // Извлечение базового *sql.DB из Gorm
-		if err != nil {
-			log.Printf("Error retrieving raw DB instance: %v", err)
-			return
-		}
-		if err := sqlDB.Close(); err != nil {
-			log.Printf("Error closing database: %v", err)
-		}
-	}()
-
-	db.SetDatabase(database)
-
-	port := os.Getenv("PORT")
-	host := os.Getenv("HOST")
-	cfg := config.Options{
-		Port: port,
-		Host: host,
-	}
-
-	// Инициализация hanlder
-	h := handler.NewHandler()
+	// Инициализация обработчиков
+	h := handler.NewHandler(database)
 
 	// Инициализация маршрутов
-	router, err := router.InitRouter(cfg, h)
-	if err != nil {
-		log.Fatalf("Error initializing router: %v", err)
-	}
-
-	// Выводим адрес запуска сервера
-	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+	r := router.SetupRouter(h)
 
 	// Запуск HTTP-сервера
-	log.Printf("Listening on %s", addr)
-	if err := http.ListenAndServe(addr, router); err != nil {
-		log.Fatalf("Error starting server: %v", err)
+	address := serverConfig.Address()
+	log.Printf("Сервер запущен на %s", address)
+	if err := http.ListenAndServe(address, r); err != nil {
+		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
-
-	//defer database.Close()
 }

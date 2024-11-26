@@ -2,16 +2,8 @@ package models
 
 import "time"
 
-var (
-	Order         orderStr
-	Orders        []orderStr
-	ExistingOrder orderStr
-)
-
-// OrderStr Order Структура для заказов
-type orderStr struct {
+type Order struct {
 	ID          uint64    `gorm:"primary_key"`
-	User        userStr   `gorm:"foreigner:UserID"`
 	UserID      uint64    `gorm:"not null"`
 	OrderNumber string    `gorm:"unique;not null"`
 	Status      string    `gorm:"default:'NEW'"`
@@ -21,9 +13,10 @@ type orderStr struct {
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
 
-type StatusOrder struct {
-	NEW        string
-	PROCESSING string
-	INVALID    string
-	PROCESSED  string
+// AccrualInfo представляет информацию о расчёте начислений для заказа.
+type AccrualInfo struct {
+	OrderNumber string    `json:"order_number"`
+	Status      string    `json:"status"`
+	Accrual     int       `json:"accrual,omitempty"`
+	ProcessedAt time.Time `json:"processed_at"`
 }

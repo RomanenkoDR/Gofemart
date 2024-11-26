@@ -1,4 +1,4 @@
-package models
+package services
 
 import (
 	"errors"
@@ -6,7 +6,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"
+	"time"
 )
+
+type claims struct {
+	Username string `json:"username"`
+	jwt.RegisteredClaims
+}
+
+func GenerateJWT(username string) (string, error) {
+
+	// Получаем SECRET_KEY из переменной окружения
+	jwtKey := os.Getenv("SECRET_KEY")
+	if jwtKey == "" {
+		return "", fmt.Errorf("SECRET_KEY is not set in environment variables")
+	}
+
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &claims{
+		Username: username,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(jwtKey))
+}
 
 func СheckAuthToken(r *http.Request) (string, int, error) {
 	jwtToken := r.Header.Get("Authorization")
@@ -21,8 +46,8 @@ func СheckAuthToken(r *http.Request) (string, int, error) {
 
 	switch {
 	case t.Valid:
-		Claims = t.Claims.(jwt.MapClaims)
-		username, ok := Claims["username"].(string)
+		validClaims := t.Claims.(jwt.MapClaims)
+		username, ok := validClaims["username"].(string)
 		if !ok || username == "" {
 			return "", http.StatusBadRequest, errors.New("неудалось получить username из токена JWT")
 		}

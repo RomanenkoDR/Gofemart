@@ -2,24 +2,26 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/RomanenkoDR/Gofemart/internal/config"
-	"github.com/RomanenkoDR/Gofemart/internal/db"
-	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"net/http"
 	"time"
+
+	"github.com/RomanenkoDR/Gofemart/internal/db"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
+	"github.com/RomanenkoDR/Gofemart/internal/services"
 )
 
-func Register(w http.ResponseWriter, r *http.Request) {
+// Register обрабатывает регистрацию нового пользователя.
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var user models.User
 
-	// Декодируем запрос в глобальную переменную User
-	err := json.NewDecoder(r.Body).Decode(&models.User)
-	if err != nil || models.User.Login == "" || models.User.Password == "" {
+	// Декодируем данные из запроса
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil || user.Login == "" || user.Password == "" {
 		http.Error(w, "Invalid username or password", http.StatusBadRequest)
 		return
 	}
 
 	// Проверяем существование пользователя
-	exists, err := db.CheckUserExists(models.User.Login)
+	exists, err := db.CheckUserExists(h.DB, user.Login)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -30,35 +32,30 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Хэшируем пароль
-	if err := models.HashPassword(); err != nil {
+	hashedPassword, err := services.HashPassword(user.Password)
+	if err != nil {
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
+	user.Password = hashedPassword
 
-	// Сохраняем пользователя
-	if err := db.CreateUser(); err != nil {
-		http.Error(w, "Failed to save user", http.StatusInternalServerError)
-		return
-	}
-
-	// Создаем баланс
-	models.Balance.UserID = models.User.ID
-	if err := db.CreateBalance(); err != nil {
-		http.Error(w, "Failed to create balance record", http.StatusInternalServerError)
+	// Создаем пользователя с балансом
+	if err := db.CreateUserWithBalance(h.DB, &user); err != nil {
+		http.Error(w, "Failed to register user", http.StatusInternalServerError)
 		return
 	}
 
 	// Генерация JWT токена
-	models.JwtKey, err = config.GenerateJWT(models.User.Login)
+	jwtToken, err := services.GenerateJWT(user.Login)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Failed to generate JWT token", http.StatusInternalServerError)
 		return
 	}
 
 	// Устанавливаем токен в cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "token",
-		Value:   models.JwtKey,
+		Value:   jwtToken,
 		Expires: time.Now().Add(24 * time.Hour),
 	})
 	w.WriteHeader(http.StatusOK)
