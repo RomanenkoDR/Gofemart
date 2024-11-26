@@ -17,14 +17,22 @@ func LoadDatabaseConfig(databaseURI string) models.DatabaseConfig {
 		databaseURI = os.Getenv("DATABASE_URI")
 	}
 
+	// Парсим URI (для примера, если нужно - заменить на более правильный парсер)
+	host := "localhost" // Замените на реальную логику парсинга URI
+	port := "5432"
+	user := "postgres"
+	password := "password"
+	name := "gofemart"
+	sslMode := "disable"
+
 	// Формируем строку подключения
 	return models.DatabaseConfig{
-		Host:     "localhost", // Можно добавить логику для парсинга URI
-		Port:     "5432",
-		User:     "postgres",
-		Password: "password",
-		Name:     "gofemart",
-		SSLMode:  "disable",
+		Host:     host,
+		Port:     port,
+		User:     user,
+		Password: password,
+		Name:     name,
+		SSLMode:  sslMode,
 	}
 }
 
