@@ -14,7 +14,7 @@ import (
 // OrdersPost обрабатывает создание нового заказа.
 func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	var (
-		existingOrder *models.Order
+		existingOrder models.Order
 		user          = &models.User{}
 	)
 
@@ -52,7 +52,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Проверяем существование заказа
-	if err := db.GetOrderByNumber(h.DB, orderNumber, existingOrder); err == nil {
+	if err := db.GetOrderByNumber(h.DB, orderNumber, &existingOrder); err == nil {
 		if existingOrder.UserID == user.ID {
 			http.Error(w, "Order already uploaded by this user", http.StatusOK)
 		} else {
@@ -114,8 +114,8 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 			"status":       order.Status,
 			"uploaded_at":  order.UploadedAt,
 		}
-		if order.Accrual != nil {
-			response[i]["accrual"] = *order.Accrual
+		if &order.Accrual != nil {
+			response[i]["accrual"] = order.Accrual
 		}
 	}
 
@@ -134,13 +134,27 @@ func (h *Handler) GetOrderAccrual(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем информацию о заказе из базы данных
 	var order models.Order
-	if err := db.GetAccrualInfoByOrderNumber(h.DB, orderNumber, &order); err != nil {
-		// Возвращаем ошибку, если не удалось найти заказ
+	err := db.GetAccrualInfoByOrderNumber(h.DB, orderNumber, &order)
+
+	// Если заказ не зарегистрирован в системе расчёта (статус 204)
+	if err != nil {
 		http.Error(w, "Заказ не зарегистрирован в системе расчёта", http.StatusNoContent)
 		return
 	}
 
-	if err := db.UpdateOrderStatus(h.DB, &order); err != nil {
+	// Проверка на статус обработки — если заказ в процессе расчёта
+	if order.Status == "PROCESSING" {
+		http.Error(w, "Заказ находится в процессе расчёта", http.StatusOK)
+		return
+	}
+
+	// Обновляем информацию о расчёте начислений
+	if err := h.DB.Model(&order).
+		Where("number_order = ?", orderNumber).
+		Updates(map[string]interface{}{
+			"status":  order.Status,
+			"accrual": order.Accrual,
+		}).Error; err != nil {
 		http.Error(w, "Не удалось обновить статус заказа", http.StatusInternalServerError)
 		return
 	}
@@ -155,7 +169,12 @@ func (h *Handler) GetOrderAccrual(w http.ResponseWriter, r *http.Request) {
 		Status: order.Status,
 	}
 
-	// Отправляем успешный ответ
+	// Если начисления есть, добавляем их в ответ
+	if order.Accrual != 0 {
+		response.Accrual = &order.Accrual
+	}
+
+	// Устанавливаем тип контента и отправляем успешный ответ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(response); err != nil {

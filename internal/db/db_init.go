@@ -37,15 +37,9 @@ func LoadDatabaseConfig(databaseURI string) models.DatabaseConfig {
 }
 
 // ConnectDB инициализирует подключение к базе данных.
-func ConnectDB(cfg models.DatabaseConfig) (*gorm.DB, error) {
-	// Формируем строку подключения
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode,
-	)
-
+func ConnectDB(databaseURI string) (*gorm.DB, error) {
 	// Подключение к базе данных
-	database, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(databaseURI), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("не удалось подключиться к базе данных: %w", err)
 	}

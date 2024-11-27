@@ -2,12 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/joho/godotenv" // Импортируем библиотеку godotenv
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/RomanenkoDR/Gofemart/internal/config"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/handler"
 	"github.com/RomanenkoDR/Gofemart/internal/router"
@@ -21,28 +19,37 @@ var (
 
 func init() {
 	// Загружаем переменные окружения из файла .env
-	if err := godotenv.Load(); err != nil {
-		log.Println("Не удалось загрузить файл .env, используются системные переменные окружения")
-	}
+	//if err := godotenv.Load(); err != nil {
+	//	log.Println("Не удалось загрузить файл .env, используются системные переменные окружения")
+	//}
+
+	envRunAddress := os.Getenv("RUN_ADDRESS")
+	envDatabaseURI := os.Getenv("DATABASE_URI")
+	envAccrualSystemAddress := os.Getenv("ACCRUAL_SYSTEM_ADDRESS")
+
 	// Добавляем флаги для конфигурирования
-	flag.StringVar(&runAddress, "a", os.Getenv("RUN_ADDRESS"), "Адрес и порт сервиса (например: localhost:8080)")
-	flag.StringVar(&databaseURI, "d", os.Getenv("DATABASE_URI"), "URI подключения к базе данных")
-	flag.StringVar(&accrualSystemURI, "r", os.Getenv("ACCRUAL_SYSTEM_ADDRESS"), "Адрес системы расчёта начислений")
+	flag.StringVar(&runAddress, "a", "localhost:8080", "Адрес и порт сервиса (например: localhost:8080)")
+	flag.StringVar(&databaseURI, "d", "postgres://postgres:password@localhost:5432/gofemart", "URI подключения к базе данных")
+	flag.StringVar(&accrualSystemURI, "r", "http://localhost:8081", "Адрес системы расчёта начислений")
 
 	// Парсим флаги
 	flag.Parse()
 
+	// Если переменные окружения заданы, они переопределяют значения по умолчанию
+	if envRunAddress != "" {
+		runAddress = envRunAddress
+	}
+	if envDatabaseURI != "" {
+		databaseURI = envDatabaseURI
+	}
+	if envAccrualSystemAddress != "" {
+		accrualSystemURI = envAccrualSystemAddress
+	}
 }
 
 func main() {
-	// Загрузка конфигурации сервера
-	serverConfig := config.LoadServerConfig(runAddress)
-
-	// Загрузка конфигурации базы данных
-	dbConfig := db.LoadDatabaseConfig(databaseURI)
-
 	// Инициализация базы данных
-	database, err := db.ConnectDB(dbConfig)
+	database, err := db.ConnectDB(databaseURI)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
@@ -55,9 +62,8 @@ func main() {
 	r := router.SetupRouter(h)
 
 	// Запуск HTTP-сервера
-	address := serverConfig.Address()
-	log.Printf("Сервер запущен на %s", address)
-	if err := http.ListenAndServe(address, r); err != nil {
+	log.Printf("Сервер запущен на %s", runAddress)
+	if err := http.ListenAndServe(runAddress, r); err != nil {
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
 }
