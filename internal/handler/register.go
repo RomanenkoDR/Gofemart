@@ -50,7 +50,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Генерация JWT токена
 	jwtToken, err := services.GenerateJWT(user.Login)
-	if err != nil {
+	if err == nil {
 		http.Error(w, "Failed to generate JWT token", http.StatusInternalServerError)
 		return
 	}
