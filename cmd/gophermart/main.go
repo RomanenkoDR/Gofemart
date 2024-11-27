@@ -18,10 +18,6 @@ var (
 )
 
 func init() {
-	// Загружаем переменные окружения из файла .env
-	//if err := godotenv.Load(); err != nil {
-	//	log.Println("Не удалось загрузить файл .env, используются системные переменные окружения")
-	//}
 
 	envRunAddress := os.Getenv("RUN_ADDRESS")
 	envDatabaseURI := os.Getenv("DATABASE_URI")

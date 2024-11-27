@@ -17,7 +17,7 @@ type claims struct {
 func GenerateJWT(username string) (string, error) {
 
 	// Получаем SECRET_KEY из переменной окружения
-	jwtKey := os.Getenv("SECRET_KEY")
+	jwtKey := "SECRET_KEY"
 	if jwtKey == "" {
 		return "", fmt.Errorf("SECRET_KEY не установлен в переменные окружения")
 	}
