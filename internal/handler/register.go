@@ -29,7 +29,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	// Проверяем существование пользователя
 	exists, err := db.CheckUserExists(h.DB, user.Login)
 
-	if exists != true {
+	if exists == true {
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
