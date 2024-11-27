@@ -36,9 +36,6 @@ func CheckUserExists(db *gorm.DB, login string) (bool, error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
-	if err != nil {
-		return false, err
-	}
 	return true, nil
 }
 
