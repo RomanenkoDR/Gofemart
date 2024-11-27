@@ -41,7 +41,7 @@ func СheckAuthToken(r *http.Request) (string, int, error) {
 	}
 
 	t, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRET_KEY")), nil
+		return []byte("SECRET_KEY"), nil
 	})
 
 	switch {
