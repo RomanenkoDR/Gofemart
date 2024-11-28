@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
-	"github.com/RomanenkoDR/Gofemart/internal/services"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
@@ -20,13 +19,6 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем логин из запросов
 	username := r.Header.Get("X-Username")
-
-	//// Проверяем авторизацию
-	//username, statusCode, err := services.СheckAuthToken(r)
-	//if err != nil {
-	//	http.Error(w, err.Error(), statusCode)
-	//	return
-	//}
 
 	// Проверяем Content-Type
 	if r.Header.Get("Content-Type") != "text/plain" {
@@ -84,12 +76,7 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 		orders []models.Order
 	)
 
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по логину
 	if err := db.GetUserByLogin(h.DB, username, user); err != nil {
