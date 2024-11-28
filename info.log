@@ -22,3 +22,8 @@
 {"level":"info","ts":1732780446.715966,"msg":"uri /api/user/orders method POST status 202 duration 39.287371292s size 23"}
 {"level":"info","ts":1732780682.022969,"msg":"uri /api/user/register method POST status 200 duration 117.60725ms size 23"}
 {"level":"info","ts":1732780812.67754,"msg":"uri /api/user/orders method POST status 409 duration 1m49.303454291s size 67"}
+{"level":"info","ts":1732781899.54721,"msg":"uri /api/user/register method POST status 409 duration 13.326875ms size 48"}
+{"level":"info","ts":1732781954.817572,"msg":"uri /api/user/login method POST status 200 duration 102.075792ms size 23"}
+{"level":"info","ts":1732781974.738699,"msg":"uri /api/user/orders method POST status 401 duration 823.834µs size 71"}
+{"level":"info","ts":1732782028.4274418,"msg":"uri /api/user/orders method POST status 400 duration 8.1741905s size 151"}
+{"level":"info","ts":1732782304.4067159,"msg":"uri /api/user/orders method POST status 409 duration 9.996998583s size 67"}

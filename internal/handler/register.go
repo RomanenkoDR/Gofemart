@@ -61,5 +61,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Value:   jwtToken,
 		Expires: time.Now().Add(24 * time.Hour),
 	})
+
+	w.Header().Set("Authorization", "Bearer "+jwtToken)
 	w.WriteHeader(http.StatusOK)
 }
