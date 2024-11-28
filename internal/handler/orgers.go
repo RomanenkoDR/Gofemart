@@ -18,12 +18,15 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		user          = &models.User{}
 	)
 
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
+
+	//// Проверяем авторизацию
+	//username, statusCode, err := services.СheckAuthToken(r)
+	//if err != nil {
+	//	http.Error(w, err.Error(), statusCode)
+	//	return
+	//}
 
 	// Проверяем Content-Type
 	if r.Header.Get("Content-Type") != "text/plain" {
