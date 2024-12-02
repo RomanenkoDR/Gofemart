@@ -88,8 +88,8 @@ func initConfig() Config {
 
 // Функция для обработки переменных окружения
 func envOrDefault(value, defaultValue string) string {
-	if value != "" {
-		return value
+	if value == "" {
+		return defaultValue
 	}
-	return defaultValue
+	return value
 }

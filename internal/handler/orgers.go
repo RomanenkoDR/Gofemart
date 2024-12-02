@@ -5,7 +5,6 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -69,16 +68,6 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
-
-	// Асинхронное обновление заказа в системе начислений
-	go func() {
-		err := db.UpdateOrderInfo(h.DB, orderNumber, h.AccrualSystemAddress)
-		if err != nil {
-			log.Printf("Ошибка обновления информации о заказе %s: %v", orderNumber, err)
-		} else {
-			log.Printf("Информация о заказе %s успешно обновлена", orderNumber)
-		}
-	}()
 
 	w.WriteHeader(http.StatusAccepted)
 }
