@@ -4,11 +4,17 @@ import (
 	"encoding/json"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
-	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 	"strings"
 )
+
+//6011111111111117
+//123456789031
+//12345678903
+//273808667
+//8254534
+//617449
 
 // OrdersPost обрабатывает создание нового заказа.
 func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +72,13 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	go func() {
+		err := db.UpdateOrderInfo(h.DB, orderNumber)
+		if err != nil {
+
+		}
+	}()
+
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -114,60 +127,5 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
-	}
-}
-
-// GetOrderAccrual обрабатывает запрос на получение информации о расчёте начисления баллов для заказа.
-func (h *Handler) GetOrderAccrual(w http.ResponseWriter, r *http.Request) {
-	// Извлекаем номер заказа из URL
-	orderNumber := chi.URLParam(r, "number")
-
-	// Получаем информацию о заказе из базы данных
-	var order models.Order
-	err := db.GetAccrualInfoByOrderNumber(h.DB, orderNumber, &order)
-
-	// Если заказ не зарегистрирован в системе расчёта (статус 204)
-	if err != nil {
-		http.Error(w, "Заказ не зарегистрирован в системе расчёта", http.StatusNoContent)
-		return
-	}
-
-	// Проверка на статус обработки — если заказ в процессе расчёта
-	if order.Status == "PROCESSING" {
-		http.Error(w, "Заказ находится в процессе расчёта", http.StatusOK)
-		return
-	}
-
-	// Обновляем информацию о расчёте начислений
-	if err := h.DB.Model(&order).
-		Where("number_order = ?", orderNumber).
-		Updates(map[string]interface{}{
-			"status":  order.Status,
-			"accrual": order.Accrual,
-		}).Error; err != nil {
-		http.Error(w, "Не удалось обновить статус заказа", http.StatusInternalServerError)
-		return
-	}
-
-	// Формируем ответ
-	response := struct {
-		Order   string   `json:"order"`
-		Status  string   `json:"status"`
-		Accrual *float64 `json:"accrual,omitempty"`
-	}{
-		Order:  orderNumber,
-		Status: order.Status,
-	}
-
-	// Если начисления есть, добавляем их в ответ
-	if order.Accrual != 0 {
-		response.Accrual = &order.Accrual
-	}
-
-	// Устанавливаем тип контента и отправляем успешный ответ
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Ошибка при формировании ответа", http.StatusInternalServerError)
 	}
 }

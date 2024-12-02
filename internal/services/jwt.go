@@ -34,13 +34,14 @@ func GenerateJWT(username string) (string, error) {
 }
 
 func СheckAuthToken(r *http.Request) (string, int, error) {
-	jwtToken := r.Header.Get("Authorization")
 
-	if jwtToken == "" || !strings.HasPrefix(jwtToken, "Bearer ") {
+	jwtTokenFromHeader := r.Header.Get("Authorization")
+
+	if jwtTokenFromHeader == "" || !strings.HasPrefix(jwtTokenFromHeader, "Bearer ") {
 		return "", http.StatusUnauthorized, errors.New("пользователь не авторизован")
 	}
 
-	jwtToken = strings.TrimPrefix(jwtToken, "Bearer ")
+	jwtToken := strings.TrimPrefix(jwtTokenFromHeader, "Bearer ")
 
 	t, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte("SECRET_KEY"), nil

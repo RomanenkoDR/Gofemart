@@ -15,8 +15,10 @@ type Order struct {
 
 // AccrualInfo представляет информацию о расчёте начислений для заказа.
 type AccrualInfo struct {
+	UserID      uint64    `gorm:"not null"`
 	OrderNumber string    `json:"order_number"`
 	Status      string    `json:"status"`
 	Accrual     int       `json:"accrual,omitempty"`
+	Sum         float64   `json:"sum,omitempty"`
 	ProcessedAt time.Time `json:"processed_at"`
 }
