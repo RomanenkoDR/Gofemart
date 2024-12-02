@@ -5,6 +5,7 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -72,10 +73,13 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Асинхронно обновляем информацию о заказе
 	go func() {
+		orderNumber := orderNumber // Локальная копия
 		err := db.UpdateOrderInfo(h.DB, orderNumber)
+		log.Printf("Запуск обновления для заказа %s", orderNumber)
 		if err != nil {
-
+			log.Printf("Ошибка обновления информации о заказе %s: %v", orderNumber, err)
 		}
 	}()
 
@@ -107,6 +111,14 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	if len(orders) == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
+	}
+
+	// Обновляем статусы заказов перед отправкой ответа
+	for _, order := range orders {
+		err := db.UpdateOrderInfo(h.DB, order.OrderNumber)
+		if err != nil {
+			log.Printf("Ошибка обновления информации о заказе %s: %v", order.OrderNumber, err)
+		}
 	}
 
 	// Формируем ответ

@@ -94,3 +94,9 @@
 {"level":"info","ts":1733130584.043772,"msg":"uri /api/user/login method POST status 200 duration 92.861666ms size 23"}
 {"level":"info","ts":1733130602.843866,"msg":"uri /api/user/orders method POST status 202 duration 8.566819792s size 23"}
 {"level":"info","ts":1733130623.9627001,"msg":"uri /api/user/orders method POST status 200 duration 16.349542ms size 64"}
+{"level":"info","ts":1733131265.297415,"msg":"uri /api/user/login method POST status 200 duration 93.320666ms size 23"}
+{"level":"info","ts":1733131290.234648,"msg":"uri /api/user/orders method POST status 200 duration 11.415836541s size 64"}
+{"level":"info","ts":1733131368.816098,"msg":"uri /api/user/orders method POST status 202 duration 25.495830917s size 23"}
+{"level":"info","ts":1733131421.4346318,"msg":"uri /api/user/orders method GET status 0 duration 38.462167708s size 150"}
+{"level":"info","ts":1733131430.609052,"msg":"uri /api/user/orders method GET status 0 duration 4.751331125s size 150"}
+{"level":"info","ts":1733131660.436204,"msg":"uri /api/user/orders method POST status 202 duration 12.784918625s size 23"}

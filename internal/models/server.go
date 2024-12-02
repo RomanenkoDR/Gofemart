@@ -5,3 +5,9 @@ type ServerConfig struct {
 	Host string
 	Port int
 }
+
+var (
+	DatabaseURI      string
+	RunAddress       string
+	AccrualSystemURI string
+)

@@ -1,59 +1,43 @@
 package db
 
 import (
-	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
 )
 
-//// LoadDatabaseConfig загружает конфигурацию базы данных из флагов и переменных окружения.
-//func LoadDatabaseConfig(databaseURI string) models.DatabaseConfig {
-//	// Если флаг для URI базы данных не задан, читаем переменную окружения
-//	if databaseURI == "" {
-//		databaseURI = os.Getenv("DATABASE_URI")
-//	}
-//
-//	// Парсим URI
-//	host := "localhost"
-//	port := "5432"
-//	user := "postgres"
-//	password := "password"
-//	name := "gofemart"
-//	sslMode := "disable"
-//
-//	// Формируем строку подключения
-//	return models.DatabaseConfig{
-//		Host:     host,
-//		Port:     port,
-//		User:     user,
-//		Password: password,
-//		Name:     name,
-//		SSLMode:  sslMode,
-//	}
-//}
+var Database *gorm.DB
+
+// InitDB инициализирует глобальную переменную Database.
+func InitDB() {
+	var err error
+	Database, err = ConnectDB(models.DatabaseURI)
+	if err != nil {
+		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
+	}
+	log.Println("Подключение к базе данных успешно установлено.")
+}
 
 // ConnectDB инициализирует подключение к базе данных.
 func ConnectDB(databaseURI string) (*gorm.DB, error) {
 	// Подключение к базе данных
 	database, err := gorm.Open(postgres.Open(databaseURI), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("не удалось подключиться к базе данных: %w", err)
+		return nil, err
 	}
 
 	// Автоматическая миграция таблиц
 	if err := database.AutoMigrate(&models.User{}, &models.Order{}, &models.Balance{}); err != nil {
-		return nil, fmt.Errorf("не удалось выполнить миграции: %w", err)
+		return nil, err
 	}
 
-	log.Println("Подключение к базе данных успешно установлено.")
 	return database, nil
 }
 
 // CloseDB закрывает соединение с базой данных.
-func CloseDB(database *gorm.DB) {
-	sqlDB, err := database.DB()
+func CloseDB() {
+	sqlDB, err := Database.DB()
 	if err != nil {
 		log.Printf("Ошибка получения необработанного подключения к базе данных: %v", err)
 		return
