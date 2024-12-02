@@ -45,9 +45,9 @@ func InitServer() {
 
 // Определение конфигурации сервера (с загрузкой переменных окружения и флагов)
 func initConfig() Config {
-	envPath := "../../.env"
+	//envPath := "../../.env"
 	// Загружаем переменные из файла .env
-	err := godotenv.Load(envPath)
+	err := godotenv.Load()
 	if err != nil {
 		log.Printf("Не удалось загрузить файл .env: %v", err)
 	}

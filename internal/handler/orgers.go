@@ -101,6 +101,13 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Обновляем статусы заказов перед отправкой ответа
+	for _, order := range orders {
+		if err := db.UpdateOrderInfo(h.DB, order.OrderNumber, h.AccrualSystemAddress); err != nil {
+			log.Printf("Ошибка обновления информации о заказе %s: %v", order.OrderNumber, err)
+		}
+	}
+
 	// Если заказы отсутствуют
 	if len(orders) == 0 {
 		w.WriteHeader(http.StatusNoContent)
