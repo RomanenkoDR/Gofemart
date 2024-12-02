@@ -70,12 +70,10 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Асинхронно обновляем заказ в системе начислений
-	go func() {
-		if err := db.UpdateOrderInfo(h.DB, orderNumber, h.AccrualSystemAddress); err != nil {
-			log.Printf("Ошибка обновления информации о заказе %s: %v", orderNumber, err)
-		}
-	}()
+	// Синхронно обновляем заказ в системе начислений
+	if err := db.UpdateOrderInfo(h.DB, orderNumber, h.AccrualSystemAddress); err != nil {
+		log.Printf("Ошибка обновления информации о заказе %s: %v", orderNumber, err)
+	}
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -100,7 +98,7 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
 		return
 	}
-
+	
 	// Обновляем статусы заказов перед отправкой ответа
 	for _, order := range orders {
 		if err := db.UpdateOrderInfo(h.DB, order.OrderNumber, h.AccrualSystemAddress); err != nil {

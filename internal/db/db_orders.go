@@ -89,7 +89,6 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 // UpdateOrderStatus обновляет статус заказа в базе данных
 func updateOrderStatus(db *gorm.DB, orderAccrual models.AccrualInfo) error {
 	var order models.Order
-
 	// Обновляем заказ в таблице
 	if err := db.Model(&models.Order{}).
 		Where("order_number = ?", orderAccrual.OrderNumber).
