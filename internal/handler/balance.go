@@ -3,18 +3,14 @@ package handler
 import (
 	"encoding/json"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
-	"github.com/RomanenkoDR/Gofemart/internal/services"
 	"net/http"
 )
 
 // Balance обрабатывает получение текущего баланса пользователя.
 func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
 
 	// Получаем баланс пользователя
 	balance, err := db.GetUserBalance(h.DB, username)

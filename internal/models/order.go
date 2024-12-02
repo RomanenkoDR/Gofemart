@@ -7,16 +7,18 @@ type Order struct {
 	UserID      uint64    `gorm:"not null"`
 	OrderNumber string    `gorm:"unique;not null"`
 	Status      string    `gorm:"default:'NEW'"`
-	Accrual     *float64  `gorm:"default:null"`
-	Sum         *float64  `gorm:"default:null"`
+	Accrual     float64   `gorm:"default:null"`
+	Sum         float64   `gorm:"default:null"`
 	UploadedAt  time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
 
 // AccrualInfo представляет информацию о расчёте начислений для заказа.
 type AccrualInfo struct {
+	UserID      uint64    `gorm:"not null"`
 	OrderNumber string    `json:"order_number"`
 	Status      string    `json:"status"`
 	Accrual     int       `json:"accrual,omitempty"`
+	Sum         float64   `json:"sum,omitempty"`
 	ProcessedAt time.Time `json:"processed_at"`
 }

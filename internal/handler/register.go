@@ -14,6 +14,12 @@ import (
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
+	// Проверяем Content-Type
+	if r.Header.Get("Content-Type") != "application/json" {
+		http.Error(w, "Invalid Content-Type, expected application/json", http.StatusBadRequest)
+		return
+	}
+
 	// Декодируем данные из запроса
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil || user.Login == "" || user.Password == "" {
 		http.Error(w, "Invalid username or password", http.StatusBadRequest)
@@ -22,11 +28,8 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем существование пользователя
 	exists, err := db.CheckUserExists(h.DB, user.Login)
-	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-	if exists {
+
+	if exists == true {
 		http.Error(w, "User already exists", http.StatusConflict)
 		return
 	}
@@ -58,5 +61,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		Value:   jwtToken,
 		Expires: time.Now().Add(24 * time.Hour),
 	})
+
+	w.Header().Set("Authorization", "Bearer "+jwtToken)
 	w.WriteHeader(http.StatusOK)
 }
