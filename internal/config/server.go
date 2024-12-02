@@ -45,9 +45,9 @@ func InitServer() {
 
 // Определение конфигурации сервера (с загрузкой переменных окружения и флагов)
 func initConfig() Config {
-	envPath := "../../.env"
+	//envPath := "../../.env"
 	// Загружаем переменные из файла .env
-	err := godotenv.Load(envPath)
+	err := godotenv.Load()
 	if err != nil {
 		log.Printf("Не удалось загрузить файл .env: %v", err)
 	}
@@ -64,10 +64,10 @@ func initConfig() Config {
 	envSecretKey := os.Getenv("SECRET_KEY")
 
 	// Добавляем флаги
-	flagRunAddress := flag.String("a", envOrDefault(envRunAddress, defaultRunAddress), "Адрес сервера")
-	flagDatabaseURI := flag.String("d", envOrDefault(envDatabaseURI, defaultDatabaseURI), "URI подключения к базе данных")
-	flagAccrualSystemAddress := flag.String("r", envOrDefault(envAccrualSystemAddress, defaultAccrualSystemURI), "Адрес системы начислений")
-	flagSecretKey := flag.String("secret_key", envOrDefault(envSecretKey, ""), "Секретный ключ для токенов")
+	flagRunAddress := flag.String("a", defaultRunAddress, "Адрес сервера")
+	flagDatabaseURI := flag.String("d", defaultDatabaseURI, "URI подключения к базе данных")
+	flagAccrualSystemAddress := flag.String("r", defaultAccrualSystemURI, "Адрес системы начислений")
+	flagSecretKey := flag.String("secret_key", envSecretKey, "Секретный ключ для токенов")
 
 	// Парсинг флагов
 	flag.Parse()
@@ -75,6 +75,16 @@ func initConfig() Config {
 	// Проверяем обязательные значения
 	if *flagSecretKey == "" {
 		log.Fatalf("SECRET_KEY отсутствует в переменных окружения и не задан через флаг")
+	}
+	// Если переменные окружения заданы, они переопределяют значения по умолчанию
+	if envRunAddress != "" {
+		*flagRunAddress = envRunAddress
+	}
+	if envDatabaseURI != "" {
+		*flagDatabaseURI = envDatabaseURI
+	}
+	if envAccrualSystemAddress != "" {
+		*flagAccrualSystemAddress = envAccrualSystemAddress
 	}
 
 	// Возвращаем актуальную конфигурацию после проверок
@@ -86,10 +96,10 @@ func initConfig() Config {
 	}
 }
 
-// Функция для обработки переменных окружения
-func envOrDefault(value, defaultValue string) string {
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
+//// Функция для обработки переменных окружения
+//func envOrDefault(value, defaultValue string) string {
+//	if value == "" {
+//		return defaultValue
+//	}
+//	return value
+//}
