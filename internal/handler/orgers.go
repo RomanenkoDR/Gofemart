@@ -5,6 +5,7 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -35,6 +36,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	orderNumber := strings.TrimSpace(string(body))
 
 	// Проверяем номер заказа
@@ -64,11 +66,14 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		OrderNumber: orderNumber,
 		UserID:      user.ID,
 	}
+
+	log.Printf("В OrderPost Отправляем запрос на создание заказа newOrder")
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("В OrderPost отправляем запрос в систему лояльности")
 	go db.UpdateOrderInfo(h.DB, orderNumber, models.Config.AccrualSystemAddress)
 
 	w.WriteHeader(http.StatusAccepted)
