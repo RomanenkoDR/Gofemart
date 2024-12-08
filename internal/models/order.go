@@ -16,6 +16,6 @@ type Order struct {
 // AccrualInfo представляет информацию о расчёте начислений для заказа.
 type AccrualInfo struct {
 	OrderNumber string `json:"order"`
-	Status      string `json:"status"`
-	Accrual     int    `json:"accrual"`
+	Status      string
+	Accrual     int `json:"accrual"`
 }
