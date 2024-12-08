@@ -44,10 +44,10 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	}
 	defer resp.Body.Close()
 
-	// Обрабатываем статус ответа
+	//Обрабатываем статус ответа
 	switch resp.StatusCode {
 	case http.StatusOK:
-		log.Printf("Получен ответ с кодом HTTP 200 OK")
+		log.Printf("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
 	case http.StatusNoContent:
 		log.Printf("Ответ с кодом HTTP 204 No Content")
 		return nil
@@ -60,20 +60,23 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 		//log.Printf("Превышено количество запросов, повтор через %d секунд", ё)
 		return fmt.Errorf("превышено количество запросов")
 	default:
-		return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
+		//return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
 	}
 
+	log.Print("В UpdateOrderInfo читаем тело ответа")
 	// Читаем тело ответа
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("ошибка при чтении ответа: %w", err)
 	}
 
+	log.Print("В UpdateOrderInfo Десериализуем JSON")
 	// Десериализуем JSON
 	if err := json.Unmarshal(body, &orderFromAccrualSystem); err != nil {
 		return fmt.Errorf("ошибка при разборе JSON: %w", err)
 	}
 
+	log.Print("В UpdateOrderInfo Обновляем статус заказа и баланс пользователя")
 	// Обновляем статус заказа и баланс пользователя
 	if err := updateOrderStatus(db, orderFromAccrualSystem); err != nil {
 		return fmt.Errorf("ошибка обновления статуса заказа: %w", err)
@@ -85,14 +88,16 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 
 // UpdateOrderStatus обновляет статус заказа в базе данных
 func updateOrderStatus(db *gorm.DB, orderAccrual models.AccrualInfo) error {
+
 	var order models.Order
+
 	// Обновляем заказ в таблице
 	if err := db.Model(&models.Order{}).
 		Where("order_number = ?", orderAccrual.OrderNumber).
 		Updates(map[string]interface{}{
 			"status":  orderAccrual.Status,
 			"accrual": orderAccrual.Accrual,
-		}).Error; err != nil {
+		}).First(&order).Error; err != nil {
 		return fmt.Errorf("ошибка при обновлении заказа: %w", err)
 	}
 

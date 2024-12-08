@@ -33,3 +33,7 @@
 {"level":"info","ts":1733682568.150193,"msg":"uri /api/user/orders method POST status 202 duration 24.464882042s size 23"}
 {"level":"info","ts":1733683475.8746188,"msg":"uri /api/user/orders method POST status 202 duration 3.635024458s size 23"}
 {"level":"info","ts":1733683495.871161,"msg":"uri /api/user/orders method POST status 202 duration 7.229341375s size 23"}
+{"level":"info","ts":1733683914.4982898,"msg":"uri /api/user/orders method GET status 0 duration 22.332375ms size 184"}
+{"level":"info","ts":1733684463.909652,"msg":"uri /api/user/orders method POST status 202 duration 5.719868042s size 23"}
+{"level":"info","ts":1733684515.999135,"msg":"uri /api/user/orders method POST status 202 duration 24.571916ms size 23"}
+{"level":"info","ts":1733684855.964612,"msg":"uri /api/user/orders method POST status 202 duration 3.0412405s size 23"}
