@@ -14,3 +14,5 @@ type ConfigFlag struct {
 	TokenMaxAge          int
 	SecretKey            string
 }
+
+var Config = ConfigFlag{}

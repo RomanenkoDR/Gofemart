@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/handler"
+	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"github.com/RomanenkoDR/Gofemart/internal/router"
 	"github.com/joho/godotenv"
 	"log"
@@ -21,30 +22,30 @@ type Config struct {
 // InitServer Инициализация конфигурации сервера
 func InitServer() {
 	// Инициализация конфигурации
-	cfg := initConfig()
+	models.Config = initConfig()
 
 	// Инициализация базы данных
-	database, err := db.ConnectDB(cfg.DatabaseURI)
+	database, err := db.ConnectDB(models.Config.DatabaseURI)
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 	defer db.CloseDB(database)
 
 	// Инициализация обработчиков
-	h := handler.NewHandler(database, cfg.AccrualSystemAddress)
+	h := handler.NewHandler(database, models.Config.AccrualSystemAddress)
 
 	// Инициализация маршрутов
 	r := router.SetupRouter(h)
 
 	// Запуск HTTP-сервера
-	log.Printf("Сервер запущен на %s", cfg.RunAddress)
-	if err := http.ListenAndServe(cfg.RunAddress, r); err != nil {
+	log.Printf("Сервер запущен на %s", models.Config.RunAddress)
+	if err := http.ListenAndServe(models.Config.RunAddress, r); err != nil {
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
 }
 
 // Определение конфигурации сервера (с загрузкой переменных окружения и флагов)
-func initConfig() Config {
+func initConfig() models.ConfigFlag {
 	//envPath := "../../.env"
 	// Загружаем переменные из файла .env
 	err := godotenv.Load()
@@ -56,6 +57,7 @@ func initConfig() Config {
 	defaultRunAddress := "localhost:8080"
 	defaultDatabaseURI := "postgres://postgres:password@localhost:5432/gofemart"
 	defaultAccrualSystemURI := "http://localhost:8081"
+	defaultSecretKey := "Secret_key_default"
 
 	// Считываем переменные окружения
 	envRunAddress := os.Getenv("RUN_ADDRESS")
@@ -64,10 +66,10 @@ func initConfig() Config {
 	envSecretKey := os.Getenv("SECRET_KEY")
 
 	// Добавляем флаги
-	flagRunAddress := flag.String("a", defaultRunAddress, "Адрес сервера")
-	flagDatabaseURI := flag.String("d", defaultDatabaseURI, "URI подключения к базе данных")
-	flagAccrualSystemAddress := flag.String("r", defaultAccrualSystemURI, "Адрес системы начислений")
-	flagSecretKey := flag.String("secret_key", envSecretKey, "Секретный ключ для токенов")
+	flagRunAddress := flag.String("a", envOrDefault(envRunAddress, defaultRunAddress), "Адрес сервера")
+	flagDatabaseURI := flag.String("d", envOrDefault(envDatabaseURI, defaultDatabaseURI), "URI подключения к базе данных")
+	flagAccrualSystemAddress := flag.String("r", envOrDefault(envAccrualSystemAddress, defaultAccrualSystemURI), "Адрес системы начислений")
+	flagSecretKey := flag.String("secret_key", envOrDefault(envSecretKey, defaultSecretKey), "Секретный ключ для токенов")
 
 	// Парсинг флагов
 	flag.Parse()
@@ -88,18 +90,25 @@ func initConfig() Config {
 	}
 
 	// Возвращаем актуальную конфигурацию после проверок
-	return Config{
+	return models.ConfigFlag{
 		RunAddress:           *flagRunAddress,
 		DatabaseURI:          *flagDatabaseURI,
 		AccrualSystemAddress: *flagAccrualSystemAddress,
 		SecretKey:            *flagSecretKey,
 	}
+
+	//return Config{
+	//	RunAddress:           *flagRunAddress,
+	//	DatabaseURI:          *flagDatabaseURI,
+	//	AccrualSystemAddress: *flagAccrualSystemAddress,
+	//	SecretKey:            *flagSecretKey,
+	//}
 }
 
-//// Функция для обработки переменных окружения
-//func envOrDefault(value, defaultValue string) string {
-//	if value == "" {
-//		return defaultValue
-//	}
-//	return value
-//}
+// Функция для обработки переменных окружения
+func envOrDefault(value, defaultValue string) string {
+	if value == "" {
+		return defaultValue
+	}
+	return value
+}

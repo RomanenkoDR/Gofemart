@@ -5,7 +5,6 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -70,10 +69,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Синхронно обновляем заказ в системе начислений
-	if err := db.UpdateOrderInfo(h.DB, orderNumber, h.AccrualSystemAddress); err != nil {
-		log.Printf("Ошибка обновления информации о заказе %s: %v", orderNumber, err)
-	}
+	go db.UpdateOrderInfo(h.DB, orderNumber, models.Config.AccrualSystemAddress)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -97,13 +93,6 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	if err := db.GetOrdersByUserID(h.DB, user.ID, &orders); err != nil {
 		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
 		return
-	}
-	
-	// Обновляем статусы заказов перед отправкой ответа
-	for _, order := range orders {
-		if err := db.UpdateOrderInfo(h.DB, order.OrderNumber, h.AccrualSystemAddress); err != nil {
-			log.Printf("Ошибка обновления информации о заказе %s: %v", order.OrderNumber, err)
-		}
 	}
 
 	// Если заказы отсутствуют

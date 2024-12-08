@@ -8,8 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 // CreateOrder создает новый заказ.
@@ -37,9 +35,8 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	log.Printf("Обращение к API: %s", urlAPI)
 
 	// Выполняем запрос
-	client := &http.Client{
-		Timeout: 10 * time.Second, // Устанавливаем таймаут для запроса
-	}
+	client := &http.Client{}
+
 	resp, err := client.Get(urlAPI)
 	if err != nil {
 		return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
@@ -57,10 +54,9 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 		log.Printf("Ответ с кодом HTTP 500 Internal Server Error")
 		return fmt.Errorf("ошибка сервера начислений")
 	case http.StatusTooManyRequests:
-		retryAfter := resp.Header.Get("Retry-After")
-		intRetryAfter, _ := strconv.Atoi(retryAfter)
-		log.Printf("Превышено количество запросов, повтор через %d секунд", intRetryAfter)
-		time.Sleep(time.Duration(intRetryAfter) * time.Second) // Ждём указанное время
+		//retryAfter := resp.Header.Get("Retry-After")
+		////intRetryAfter, _ := strconv.Atoi(retryAfter)
+		//log.Printf("Превышено количество запросов, повтор через %d секунд", ё)
 		return fmt.Errorf("превышено количество запросов")
 	default:
 		return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
