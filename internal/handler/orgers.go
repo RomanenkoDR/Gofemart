@@ -4,26 +4,25 @@ import (
 	"encoding/json"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
-	"github.com/RomanenkoDR/Gofemart/internal/services"
-	"github.com/go-chi/chi/v5"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
 
+//617449
+//12345678903
+//6011111111111117
+
 // OrdersPost обрабатывает создание нового заказа.
 func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	var (
-		existingOrder *models.Order
+		existingOrder models.Order
 		user          = &models.User{}
 	)
 
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
 
 	// Проверяем Content-Type
 	if r.Header.Get("Content-Type") != "text/plain" {
@@ -37,6 +36,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	orderNumber := strings.TrimSpace(string(body))
 
 	// Проверяем номер заказа
@@ -52,7 +52,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Проверяем существование заказа
-	if err := db.GetOrderByNumber(h.DB, orderNumber, existingOrder); err == nil {
+	if err := db.GetOrderByNumber(h.DB, orderNumber, &existingOrder); err == nil {
 		if existingOrder.UserID == user.ID {
 			http.Error(w, "Order already uploaded by this user", http.StatusOK)
 		} else {
@@ -66,10 +66,15 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		OrderNumber: orderNumber,
 		UserID:      user.ID,
 	}
+
+	log.Printf("В OrderPost Отправляем запрос на создание заказа newOrder")
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("В OrderPost отправляем запрос в систему лояльности")
+	go db.UpdateOrderInfo(h.DB, orderNumber, models.Config.AccrualSystemAddress)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -81,12 +86,7 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 		orders []models.Order
 	)
 
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по логину
 	if err := db.GetUserByLogin(h.DB, username, user); err != nil {
@@ -114,8 +114,8 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 			"status":       order.Status,
 			"uploaded_at":  order.UploadedAt,
 		}
-		if order.Accrual != nil {
-			response[i]["accrual"] = *order.Accrual
+		if &order.Accrual != nil {
+			response[i]["accrual"] = order.Accrual
 		}
 	}
 
@@ -124,46 +124,5 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
-	}
-}
-
-// GetOrderAccrual обрабатывает запрос на получение информации о расчёте начисления баллов для заказа.
-func (h *Handler) GetOrderAccrual(w http.ResponseWriter, r *http.Request) {
-	// Извлекаем номер заказа из URL
-	orderNumber := chi.URLParam(r, "number")
-
-	// Получаем информацию о заказе из базы данных
-	var order models.Order
-	if err := db.GetAccrualInfoByOrderNumber(h.DB, orderNumber, &order); err != nil {
-		// Возвращаем ошибку, если не удалось найти заказ
-		http.Error(w, "Заказ не зарегистрирован в системе расчёта", http.StatusNoContent)
-		return
-	}
-
-	if err := db.UpdateOrderStatus(h.DB, &order); err != nil {
-		http.Error(w, "Не удалось обновить статус заказа", http.StatusInternalServerError)
-		return
-	}
-
-	// Формируем ответ
-	response := struct {
-		Order   string   `json:"order"`
-		Status  string   `json:"status"`
-		Accrual *float64 `json:"accrual,omitempty"`
-	}{
-		Order:  orderNumber,
-		Status: order.Status,
-	}
-
-	// Если статус "PROCESSED", добавляем количество начисленных баллов
-	if order.Status == "PROCESSED" && order.Accrual != nil {
-		response.Accrual = order.Accrual
-	}
-
-	// Отправляем успешный ответ
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Ошибка при формировании ответа", http.StatusInternalServerError)
 	}
 }

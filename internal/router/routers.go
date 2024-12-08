@@ -29,9 +29,6 @@ func SetupRouter(h *handler.Handler) *chi.Mux {
 			r.Get("/api/user/orders", h.OrdersGet)        // Получение списка заказов пользователя
 			r.Get("/api/user/balance", h.Balance)         // Получение текущего баланса
 			r.Get("/api/user/withdrawals", h.Withdrawals) // Получение информации о выводах средств
-
-			r.Get("/api/orders/{number}", h.GetOrderAccrual) // Получение информации о расчете начисления баллов
-
 		})
 	})
 

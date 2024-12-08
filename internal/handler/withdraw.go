@@ -12,12 +12,9 @@ import (
 
 // Withdraw обрабатывает запрос на списание средств.
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
 
 	// Парсим тело запроса
 	var requestBody struct {
