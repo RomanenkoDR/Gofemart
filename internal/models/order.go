@@ -17,5 +17,5 @@ type Order struct {
 type AccrualInfo struct {
 	OrderNumber string `json:"order"`
 	Status      string
-	Accrual     int `json:"accrual"`
+	Accrual     float64 `json:"accrual"`
 }
