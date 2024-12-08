@@ -70,9 +70,11 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 		return fmt.Errorf("ошибка при чтении ответа: %w", err)
 	}
 
-	log.Print("В UpdateOrderInfo Десериализуем JSON")
+	log.Printf("В UpdateOrderInfo Десериализуем JSON %s", resp.Body)
 	// Десериализуем JSON
 	if err := json.Unmarshal(body, &orderFromAccrualSystem); err != nil {
+		log.Printf("В UpdateOrderInfo внутри json.Unmarshal. %s", err)
+
 		return fmt.Errorf("ошибка при разборе JSON: %w", err)
 	}
 

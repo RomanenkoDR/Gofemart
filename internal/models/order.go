@@ -15,8 +15,7 @@ type Order struct {
 
 // AccrualInfo представляет информацию о расчёте начислений для заказа.
 type AccrualInfo struct {
-	OrderNumber string    `json:"order_number"`
-	Status      string    `json:"status"`
-	Accrual     int       `json:"accrual,omitempty"`
-	ProcessedAt time.Time `json:"processed_at"`
+	OrderNumber string `json:"order"`
+	Status      string `json:"status"`
+	Accrual     int    `json:"accrual""`
 }
