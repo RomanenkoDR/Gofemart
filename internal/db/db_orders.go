@@ -35,10 +35,11 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	log.Printf("Обращение к API: %s", urlAPI)
 
 	// Выполняем запрос
-	client := &http.Client{}
+	log.Printf("В UpdateOrderInfo отправляем запрос в систему лояльности")
 
-	resp, err := client.Get(urlAPI)
+	resp, err := http.Get(urlAPI)
 	if err != nil {
+		log.Printf("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
 		return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
 	}
 	defer resp.Body.Close()
