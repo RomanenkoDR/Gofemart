@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/gorm"
+	"log"
 )
 
 // GetUserBalance возвращает баланс пользователя по логину.
@@ -13,21 +14,29 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 	var balance models.Balance
 
 	// Ищем пользователя по логину
+	log.Printf("В ручке Balance в функции GetUserBalance ищем пользователя по логину %s", username)
 	if err := db.
 		Where("login = ?", username).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске пользователя по логину: %s", err)
 			return nil, gorm.ErrRecordNotFound
 		}
+		log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске пользователя по логину: %s", err)
 		return nil, err
 	}
+
 	// Ищем баланс пользователя по user.ID
+	log.Printf("В ручке Balance в функции GetUserBalance ищем баланс по id %v", user.ID)
 	if err := db.Where("user_id = ?", user.ID).First(&balance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске баланса по id: %s", err)
 			return nil, gorm.ErrRecordNotFound
 		}
+		log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске баланса по id: %s", err)
 		return nil, err
 	}
+	log.Printf("В ручке Balance в функции GetUserBalance нашли баланс пользователя по логину: %v", user.ID)
 	return &balance, nil
 }
 

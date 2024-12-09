@@ -90,24 +90,30 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по логину
+	log.Printf("В ручке OrdersGet отправляем запрос на получение id пользователя %s", username)
 	if err := db.GetUserByLogin(h.DB, username, user); err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return
 	}
 
 	// Получаем заказы пользователя
+	log.Printf("В ручке OrdersGet отправляем запрос на получение заказов пользователя по id %s", user.ID)
 	if err := db.GetOrdersByUserID(h.DB, user.ID, &ordersJSON); err != nil {
+		log.Print("В ручке OrdersGet ошибка при получении заказов")
 		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
 		return
 	}
 
 	// Если заказы отсутствуют
+	log.Print("В ручке OrdersGet проверка на наличие заказов")
 	if len(ordersJSON) == 0 {
+		log.Print("В ручке OrdersGet заказы отсутствуют")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
 	// Отправляем ответ
+	log.Print("В ручке OrdersGet отправляем ответ")
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(ordersJSON); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
