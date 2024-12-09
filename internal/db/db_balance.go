@@ -34,7 +34,7 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order) error {
 	if err := db.Model(&models.Balance{}).
 		Where("user_id = ?", orderAccrual.UserID).
-		Update("current", gorm.Expr("current + ?", orderAccrual.Accrual)).Error; err != nil {
+		Update("current", gorm.Expr("current - ?", orderAccrual.Sum)).Error; err != nil {
 		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
 	}
 	return nil
