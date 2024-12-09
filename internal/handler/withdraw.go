@@ -6,6 +6,7 @@ import (
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"github.com/RomanenkoDR/Gofemart/internal/services"
+	"log"
 	"net/http"
 	"time"
 )
@@ -24,6 +25,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 	// Декодируем JSON
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при парсинге json: %s", err)
 		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
 		return
 	}
@@ -34,18 +36,21 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Получаем пользователя по токену
 	var (
 		user    models.User
 		balance models.Balance
 	)
+
+	// Получаем пользователя по логину
 	if err := db.GetUserByLogin(h.DB, username, &user); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при получении id пользователя по логину: %s", err)
 		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
 		return
 	}
 
 	// Проверяем, есть ли достаточно средств на счету
 	if balance.Current < float64(requestBody.Sum) {
+		log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %s, баланс: %s", balance.Current, requestBody.Sum)
 		http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)
 		return
 	}
@@ -55,6 +60,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 	// Обновляем баланс пользователя в базе данных
 	if err := db.UpdateUserBalance(h.DB, &user); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}

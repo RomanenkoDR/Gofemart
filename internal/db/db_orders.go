@@ -35,11 +35,11 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	log.Printf("Обращение к API: %s", urlAPI)
 
 	// Выполняем запрос
-	log.Printf("В UpdateOrderInfo отправляем запрос в систему лояльности")
+	log.Print("В UpdateOrderInfo отправляем запрос в систему лояльности")
 
 	resp, err := http.Get(urlAPI)
 	if err != nil {
-		log.Printf("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
+		log.Print("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
 		return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
 	}
 	defer resp.Body.Close()
@@ -47,17 +47,14 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	//Обрабатываем статус ответа
 	switch resp.StatusCode {
 	case http.StatusOK:
-		log.Printf("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
+		log.Print("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
 	case http.StatusNoContent:
-		log.Printf("Ответ с кодом HTTP 204 No Content")
+		log.Print("Ответ с кодом HTTP 204 No Content")
 		return nil
 	case http.StatusInternalServerError:
-		log.Printf("Ответ с кодом HTTP 500 Internal Server Error")
+		log.Print("Ответ с кодом HTTP 500 Internal Server Error")
 		return fmt.Errorf("ошибка сервера начислений")
 	case http.StatusTooManyRequests:
-		//retryAfter := resp.Header.Get("Retry-After")
-		////intRetryAfter, _ := strconv.Atoi(retryAfter)
-		//log.Printf("Превышено количество запросов, повтор через %d секунд", ё)
 		return fmt.Errorf("превышено количество запросов")
 	default:
 		//return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
@@ -79,6 +76,7 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	}
 
 	log.Print("В UpdateOrderInfo Обновляем статус заказа и баланс пользователя")
+
 	// Обновляем статус заказа и баланс пользователя
 	if err := updateOrderStatus(db, orderFromAccrualSystem); err != nil {
 		return fmt.Errorf("ошибка обновления статуса заказа: %w", err)
