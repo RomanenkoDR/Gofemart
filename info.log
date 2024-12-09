@@ -84,3 +84,8 @@
 {"level":"info","ts":1733749498.098754,"msg":"uri /api/user/balance method GET status 0 duration 7.680265708s size 60"}
 {"level":"info","ts":1733749537.3003032,"msg":"uri /api/user/balance/withdraw method POST status 200 duration 18.941333ms size 23"}
 {"level":"info","ts":1733749545.4029598,"msg":"uri /api/user/balance method GET status 0 duration 4.52656725s size 60"}
+{"level":"info","ts":1733752946.610786,"msg":"uri /api/user/login method POST status 401 duration 10.344333ms size 54"}
+{"level":"info","ts":1733752954.3401978,"msg":"uri /api/user/register method POST status 200 duration 122.8995ms size 23"}
+{"level":"info","ts":1733752994.7501152,"msg":"uri /api/user/orders method POST status 202 duration 14.353583ms size 23"}
+{"level":"info","ts":1733753221.583214,"msg":"uri /api/user/orders method POST status 202 duration 22.758792ms size 23"}
+{"level":"info","ts":1733753726.601263,"msg":"uri /api/user/balance method GET status 0 duration 4m0.737675459s size 61"}
