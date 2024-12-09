@@ -84,7 +84,7 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	var (
 		user = &models.User{}
 		//orders     = []models.Order{}
-		ordersJSON = []models.OrdersUserJSON{}
+		ordersJSON []models.OrdersUserJSON
 	)
 
 	username := r.Header.Get("X-Username")

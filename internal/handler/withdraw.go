@@ -52,7 +52,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Проверяем, есть ли достаточно средств на счету
-	if balance.Current < requestBody.Sum {
+	if balance.Current <= requestBody.Sum {
 		log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %s, баланс: %s", balance.Current, requestBody.Sum)
 		http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)
 		return
@@ -71,7 +71,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Списываем средства
-	balance.Current -= requestBody.Sum
+	// balance.Current -= requestBody.Sum
 
 	// Обновляем баланс пользователя в базе данных
 	if err := db.UpdateUserBalance(h.DB, newOrder); err != nil {
