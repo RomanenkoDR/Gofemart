@@ -13,14 +13,25 @@ import (
 
 // Withdraw обрабатывает запрос на списание средств.
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
+	var (
+		user    models.User
+		balance *models.Balance
+	)
+
+	// Парсим тело запроса
+	var requestBody struct {
+		Order string  `json:"order"`
+		Sum   float64 `json:"sum"`
+	}
 
 	// Получаем логин из запросов
 	username := r.Header.Get("X-Username")
 
-	// Парсим тело запроса
-	var requestBody struct {
-		Order string `json:"order"`
-		Sum   int    `json:"sum"`
+	// Получаем пользователя по логину
+	if err := db.GetUserByLogin(h.DB, username, &user); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при получении id пользователя по логину: %s", err)
+		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
+		return
 	}
 
 	// Декодируем JSON
@@ -30,36 +41,42 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем номер заказа (например, с помощью алгоритма Луна)
+	// Проверяем номер заказа алгоритмом Луна
 	if !models.ValidLun(requestBody.Order) {
 		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
 		return
 	}
 
-	var (
-		user    models.User
-		balance models.Balance
-	)
-
-	// Получаем пользователя по логину
-	if err := db.GetUserByLogin(h.DB, username, &user); err != nil {
-		log.Printf("В Withdraw (POST) ошибка при получении id пользователя по логину: %s", err)
-		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
+	balance, err := db.GetUserBalance(h.DB, username)
+	if err != nil {
+		http.Error(w, "Ошибка при получении баланса", http.StatusInternalServerError)
 		return
 	}
 
 	// Проверяем, есть ли достаточно средств на счету
-	if balance.Current < float64(requestBody.Sum) {
+	if balance.Current < requestBody.Sum {
 		log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %s, баланс: %s", balance.Current, requestBody.Sum)
 		http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)
 		return
 	}
 
+	newOrder := &models.Order{
+		OrderNumber: requestBody.Order,
+		UserID:      user.ID,
+		Sum:         requestBody.Sum,
+	}
+
+	if err := db.CreateOrder(h.DB, newOrder); err != nil {
+		log.Printf("в Withdraw ошибка при создании заказ пользователя")
+		http.Error(w, "Failed to create order", http.StatusInternalServerError)
+		return
+	}
+
 	// Списываем средства
-	balance.Current -= float64(requestBody.Sum)
+	balance.Current -= requestBody.Sum
 
 	// Обновляем баланс пользователя в базе данных
-	if err := db.UpdateUserBalance(h.DB, &user); err != nil {
+	if err := db.UpdateUserBalance(h.DB, newOrder); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return

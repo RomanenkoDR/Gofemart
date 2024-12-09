@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/gorm"
 )
@@ -30,9 +31,11 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 }
 
 // UpdateUserBalance обновляет баланс пользователя в базе данных.
-func UpdateUserBalance(db *gorm.DB, user *models.User) error {
-	if err := db.Save(&user).Error; err != nil {
-		return err
+func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order) error {
+	if err := db.Model(&models.Balance{}).
+		Where("user_id = ?", orderAccrual.UserID).
+		Update("current", gorm.Expr("current + ?", orderAccrual.Accrual)).Error; err != nil {
+		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
 	}
 	return nil
 }

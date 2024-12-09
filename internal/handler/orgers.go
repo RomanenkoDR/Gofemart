@@ -24,11 +24,11 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	// Получаем логин из запросов
 	username := r.Header.Get("X-Username")
 
-	// Проверяем Content-Type
-	//if r.Header.Get("Content-Type") != "text/plain" {
-	//	http.Error(w, "Invalid Content-Type, expected text/plain", http.StatusBadRequest)
-	//	return
-	//}
+	//Проверяем Content-Type
+	if r.Header.Get("Content-Type") != "text/plain" {
+		http.Error(w, "Invalid Content-Type, expected text/plain", http.StatusBadRequest)
+		return
+	}
 
 	// Читаем номер заказа
 	body, err := io.ReadAll(r.Body)

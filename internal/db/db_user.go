@@ -41,8 +41,3 @@ func CheckUserExists(db *gorm.DB, login string) (bool, error) {
 	}
 	return true, nil
 }
-
-// GetBalanceByUserID получаем баланс пользователя по его id
-func GetBalanceByUserID(db *gorm.DB, userID uint64, balance *models.Balance) error {
-	return db.Where("user_id = ?", userID).First(balance).Error
-}
