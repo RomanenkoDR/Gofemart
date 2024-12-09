@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
-	"github.com/RomanenkoDR/Gofemart/internal/services"
 	"log"
 	"net/http"
-	"time"
 )
 
 // Withdraw обрабатывает запрос на списание средств.
@@ -89,12 +87,9 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 // Withdrawals обрабатывает запрос на получение информации о выводах средств.
 func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по имени из токена
 	var user models.User
@@ -104,8 +99,8 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Извлекаем все выводы средств пользователя
-	var withdrawals []models.Withdrawal
-	if err := db.GetWithdrawalsByUserID(h.DB, user.ID, &withdrawals); err != nil {
+	withdrawals, err := db.GetWithdrawalsByUserID(h.DB, user.ID)
+	if err != nil {
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
@@ -114,15 +109,6 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	if len(withdrawals) == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
-	}
-
-	// Сортируем выводы по времени от новых к старым
-	// (Это будет уже сделано в SQL запросе через Order)
-	// Можно добавлять сортировку вручную, если нужно
-
-	// Преобразуем поле времени в строку формата RFC3339
-	for i := range withdrawals {
-		withdrawals[i].ProcessedAtStr = withdrawals[i].ProcessedAt.Format(time.RFC3339)
 	}
 
 	// Отправляем ответ с выводами

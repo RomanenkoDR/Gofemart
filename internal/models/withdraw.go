@@ -3,10 +3,13 @@ package models
 import "time"
 
 // Withdrawal представляет информацию о выводах средств пользователя.
-type Withdrawal struct {
-	Order          string    `json:"order"`
-	Sum            int       `json:"sum"`
-	ProcessedAt    time.Time `json:"processed_at"`
-	ProcessedAtStr string    `json:"processed_at_str,omitempty"` // Добавлено для хранения строки
-	UserID         uint64    `json:"user_id"`
+type WithdrawalsJSON struct {
+	ID          uint64    `gorm:"primary_key" json:"-"`
+	UserID      uint64    `gorm:"not null" json:"-"`
+	OrderNumber string    `gorm:"unique;not null" json:"order"`
+	Status      string    `gorm:"default:'NEW'" json:"-"`
+	Accrual     float64   `gorm:"default:null" json:"-"`
+	Sum         float64   `gorm:"default:null" json:"sum"`
+	UploadedAt  time.Time `gorm:"autoCreateTime" json:"-"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"processed_at"`
 }
