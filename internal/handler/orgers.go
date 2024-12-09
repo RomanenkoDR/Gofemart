@@ -116,6 +116,8 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	log.Print("В ручке OrdersGet отправляем ответ")
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(ordersJSON); err != nil {
+		log.Printf("В ручке OrdersGet ошибка при Кодировании json: %s", err)
+		log.Printf("В ручке OrdersGet ошибка при Кодировании json: %v", ordersJSON)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
