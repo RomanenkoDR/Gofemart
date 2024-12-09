@@ -82,8 +82,9 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 // OrdersGet обрабатывает получение заказов пользователя.
 func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	var (
-		user   = &models.User{}
-		orders []models.Order
+		user = &models.User{}
+		//orders     = []models.Order{}
+		ordersJSON = []models.OrdersUserJSON{}
 	)
 
 	username := r.Header.Get("X-Username")
@@ -95,33 +96,20 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем заказы пользователя
-	if err := db.GetOrdersByUserID(h.DB, user.ID, &orders); err != nil {
+	if err := db.GetOrdersByUserID(h.DB, user.ID, &ordersJSON); err != nil {
 		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
 		return
 	}
 
 	// Если заказы отсутствуют
-	if len(orders) == 0 {
+	if len(ordersJSON) == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	// Формируем ответ
-	response := make([]map[string]interface{}, len(orders))
-	for i, order := range orders {
-		response[i] = map[string]interface{}{
-			"order_number": order.OrderNumber,
-			"status":       order.Status,
-			"uploaded_at":  order.UploadedAt,
-		}
-		if &order.Accrual != nil {
-			response[i]["accrual"] = order.Accrual
-		}
-	}
-
 	// Отправляем ответ
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(ordersJSON); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
