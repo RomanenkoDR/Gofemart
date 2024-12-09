@@ -21,10 +21,10 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 
 	// Отправляем ответ
 	response := map[string]interface{}{
-		"current":   balance.Current,
-		"withdrawn": balance.Withdraw,
+		"current":  balance.Current,
+		"withdraw": balance.Withdraw,
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	w.Header().Set("Content-Type", "application/json")
 }

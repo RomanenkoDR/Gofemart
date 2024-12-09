@@ -70,9 +70,6 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Списываем средства
-	// balance.Current -= requestBody.Sum
-
 	// Обновляем баланс пользователя в базе данных
 	if err := db.UpdateUserBalance(h.DB, newOrder); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
