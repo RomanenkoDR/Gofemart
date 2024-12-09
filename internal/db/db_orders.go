@@ -1,10 +1,13 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/gorm"
+	"io"
 	"log"
+	"net/http"
 )
 
 // CreateOrder создает новый заказ.
@@ -26,57 +29,51 @@ func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress strin
 	var (
 		orderFromAccrualSystem models.AccrualInfo
 	)
-	//
-	//// Формируем URL для запроса
-	//urlAPI := fmt.Sprintf("%s/api/orders/%s", accrualSystemAddress, numberOrder)
-	//log.Printf("Обращение к API: %s", urlAPI)
-	//
-	//// Выполняем запрос
-	//log.Print("В UpdateOrderInfo отправляем запрос в систему лояльности")
-	//
-	//resp, err := http.Get(urlAPI)
-	//if err != nil {
-	//	log.Print("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
-	//	return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
-	//}
-	//defer resp.Body.Close()
-	//
-	////Обрабатываем статус ответа
-	//switch resp.StatusCode {
-	//case http.StatusOK:
-	//	log.Print("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
-	//case http.StatusNoContent:
-	//	log.Print("Ответ с кодом HTTP 204 No Content")
-	//	return nil
-	//case http.StatusInternalServerError:
-	//	log.Print("Ответ с кодом HTTP 500 Internal Server Error")
-	//	return fmt.Errorf("ошибка сервера начислений")
-	//case http.StatusTooManyRequests:
-	//	return fmt.Errorf("превышено количество запросов")
-	//default:
-	//	//return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
-	//}
-	//
-	//log.Print("В UpdateOrderInfo читаем тело ответа")
-	//// Читаем тело ответа
-	//body, err := io.ReadAll(resp.Body)
-	//if err != nil {
-	//	return fmt.Errorf("ошибка при чтении ответа: %w", err)
-	//}
-	//
-	//log.Printf("В UpdateOrderInfo Десериализуем JSON %s", body)
-	//
-	//// Десериализуем JSON
-	//if err := json.Unmarshal(body, &orderFromAccrualSystem); err != nil {
-	//	log.Printf("В UpdateOrderInfo внутри json.Unmarshal. %s", err)
-	//
-	//	return fmt.Errorf("ошибка при разборе JSON: %w", err)
-	//}
 
-	orderFromAccrualSystem = models.AccrualInfo{
-		OrderNumber: numberOrder,
-		Status:      "PROCESSED",
-		Accrual:     735.123,
+	// Формируем URL для запроса
+	urlAPI := fmt.Sprintf("%s/api/orders/%s", accrualSystemAddress, numberOrder)
+	log.Printf("Обращение к API: %s", urlAPI)
+
+	// Выполняем запрос
+	log.Print("В UpdateOrderInfo отправляем запрос в систему лояльности")
+
+	resp, err := http.Get(urlAPI)
+	if err != nil {
+		log.Print("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
+		return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
+	}
+	defer resp.Body.Close()
+
+	//Обрабатываем статус ответа
+	switch resp.StatusCode {
+	case http.StatusOK:
+		log.Print("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
+	case http.StatusNoContent:
+		log.Print("Ответ с кодом HTTP 204 No Content")
+		return nil
+	case http.StatusInternalServerError:
+		log.Print("Ответ с кодом HTTP 500 Internal Server Error")
+		return fmt.Errorf("ошибка сервера начислений")
+	case http.StatusTooManyRequests:
+		return fmt.Errorf("превышено количество запросов")
+	default:
+		//return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
+	}
+
+	log.Print("В UpdateOrderInfo читаем тело ответа")
+	// Читаем тело ответа
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("ошибка при чтении ответа: %w", err)
+	}
+
+	log.Printf("В UpdateOrderInfo Десериализуем JSON %s", body)
+
+	// Десериализуем JSON
+	if err := json.Unmarshal(body, &orderFromAccrualSystem); err != nil {
+		log.Printf("В UpdateOrderInfo внутри json.Unmarshal. %s", err)
+
+		return fmt.Errorf("ошибка при разборе JSON: %w", err)
 	}
 
 	log.Print("В UpdateOrderInfo Обновляем статус заказа и баланс пользователя")
