@@ -3,35 +3,21 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/RomanenkoDR/Gofemart/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-// LoadDatabaseConfig загружает конфигурацию базы данных из переменных окружения.
-func LoadDatabaseConfig() models.DatabaseConfig {
-	return models.DatabaseConfig{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASS"),
-		Name:     os.Getenv("DB_NAME"),
-		SSLMode:  "disable", // Значение по умолчанию для локальной разработки
-	}
-}
-
 // ConnectDB инициализирует подключение к базе данных.
-func ConnectDB(cfg models.DatabaseConfig) (*gorm.DB, error) {
-	// Формируем строку подключения
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSLMode,
-	)
+func ConnectDB(databaseURI string) (*gorm.DB, error) {
+	// Проверяем наличие URI
+	if databaseURI == "" {
+		return nil, fmt.Errorf("строка подключения к базе данных пуста")
+	}
 
 	// Подключение к базе данных
-	database, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	database, err := gorm.Open(postgres.Open(databaseURI), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("не удалось подключиться к базе данных: %w", err)
 	}
