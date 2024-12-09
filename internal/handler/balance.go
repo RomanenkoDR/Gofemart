@@ -24,6 +24,7 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 		"current":   balance.Current,
 		"withdrawn": balance.Withdraw,
 	}
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+
+	w.Header().Set("Content-Type", "application/json")
 }
