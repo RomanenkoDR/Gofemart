@@ -36,7 +36,7 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 		log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске баланса по id: %s", err)
 		return nil, err
 	}
-	log.Printf("В ручке Balance в функции GetUserBalance нашли баланс пользователя по логину: %v", user.ID)
+	log.Printf("В ручке Balance в функции GetUserBalance нашли баланс пользователя: %v", balance)
 	return &balance, nil
 }
 

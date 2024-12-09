@@ -102,6 +102,8 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("В ручке Withdrawals получили баланс: %v", withdrawals)
+
 	// Если выводы отсутствуют, возвращаем статус 204
 	if len(withdrawals) == 0 {
 		w.WriteHeader(http.StatusNoContent)

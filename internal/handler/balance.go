@@ -21,6 +21,7 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to retrieve user balance", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("В ручке Balance Отправили получили баланс %v", balance)
 
 	// Отправляем ответ
 	log.Print("В ручке Balance формируем ответ")
@@ -33,5 +34,4 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 
 	w.WriteHeader(http.StatusOK)
-
 }
