@@ -71,11 +71,14 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Проверка значения перед изменением баланса: current %f и sum:%f", balance.Current, requestBody.Sum)
+	log.Printf("Проверка значения перед изменением баланса: withdranw %f и sum:%f", balance.Withdrawn, requestBody.Sum)
 	balance.Current -= requestBody.Sum
-
+	balance.Withdrawn += requestBody.Sum
 	log.Printf("Проверка значения после изменения баланса: current %f и sum:%f", balance.Current, requestBody.Sum)
+	log.Printf("Проверка значения после изменения баланса: withdranw %f и sum:%f", balance.Withdrawn, requestBody.Sum)
+
 	// Обновляем баланс пользователя в базе данных
-	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current); err != nil {
+	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current, balance.Withdrawn); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return

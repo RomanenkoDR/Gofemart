@@ -41,11 +41,12 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 }
 
 // UpdateUserBalance обновляет баланс пользователя в базе данных.
-func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent float64) error {
+func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent float64, balanceWithdrawn float64) error {
 	if err := db.
 		Model(&models.Balance{}).
 		Where("user_id = ?", orderAccrual.UserID).
-		Update("current", balanceCurrent).Error; err != nil {
+		Update("current", balanceCurrent).
+		Update("withdrawn", balanceWithdrawn).Error; err != nil {
 		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
 	}
 	return nil

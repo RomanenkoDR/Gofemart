@@ -26,8 +26,8 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 	// Отправляем ответ
 	log.Print("В ручке Balance формируем ответ")
 	response := map[string]interface{}{
-		"current":  balance.Current,
-		"withdraw": balance.Withdraw,
+		"current":   balance.Current,
+		"withdrawn": balance.Withdrawn,
 	}
 	log.Print("В ручке Balance устанавливаем ответ в body")
 	w.Header().Set("Content-Type", "application/json")
