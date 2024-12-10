@@ -65,13 +65,14 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
-		log.Printf("в Withdraw ошибка при создании заказ пользователя")
+		log.Print("в Withdraw ошибка при создании заказ пользователя")
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
-
+	log.Printf("Проверка значения перед изменением баланса: %f", balance.Current)
 	balance.Current -= requestBody.Sum
 
+	log.Printf("Проверка нового значения перед обновлением баланса: %f", balance.Current)
 	// Обновляем баланс пользователя в базе данных
 	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
