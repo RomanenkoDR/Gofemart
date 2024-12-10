@@ -19,15 +19,17 @@ func ConnectDB(databaseURI string) (*gorm.DB, error) {
 	// Подключение к базе данных
 	database, err := gorm.Open(postgres.Open(databaseURI), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("не удалось подключиться к базе данных: %w", err)
+		log.Printf("Ошибка при подключении к базе данных. ERR: %v", err)
+		return nil, fmt.Errorf("не удалось подключиться к базе данных: %v", err)
 	}
 
 	// Автоматическая миграция таблиц
 	if err := database.AutoMigrate(&models.User{}, &models.Order{}, &models.Balance{}); err != nil {
-		return nil, fmt.Errorf("не удалось выполнить миграции: %w", err)
+		log.Printf("Ошибка при миграции базы данных. ERR: %v", err)
+		return nil, fmt.Errorf("не удалось выполнить миграции: %v", err)
 	}
 
-	log.Println("Подключение к базе данных успешно установлено.")
+	log.Printf("Подключение к базе данных успешно установлено. DB_Connect: %v", database)
 	return database, nil
 }
 

@@ -26,64 +26,57 @@ func GetOrdersByUserID(db *gorm.DB, userID uint, orders *[]models.OrdersUserJSON
 }
 
 func UpdateOrderInfo(db *gorm.DB, numberOrder string, accrualSystemAddress string) error {
-	var (
-		orderFromAccrualSystem models.AccrualInfo
-	)
+	var orderFromAccrualSystem models.AccrualInfo
 
 	// Формируем URL для запроса
 	urlAPI := fmt.Sprintf("%s/api/orders/%s", accrualSystemAddress, numberOrder)
 	log.Printf("Обращение к API: %s", urlAPI)
 
-	// Выполняем запрос
-	log.Print("В UpdateOrderInfo отправляем запрос в систему лояльности")
-
+	// Выполняем запрос в систему лояльности
 	resp, err := http.Get(urlAPI)
 	if err != nil {
-		log.Print("В UpdateOrderInfo получили ошибку при запросе в систему лояльности")
-		return fmt.Errorf("ошибка при запросе к системе начислений: %w", err)
+		return fmt.Errorf("ошибка при запросе к системе лояльности: %w", err)
 	}
 	defer resp.Body.Close()
 
 	//Обрабатываем статус ответа
 	switch resp.StatusCode {
 	case http.StatusOK:
-		log.Print("В UpdateOrderInfo Получен ответ с кодом HTTP 200 OK")
+		log.Printf("В системе лояльности получен код: %d", http.StatusOK)
 	case http.StatusNoContent:
-		log.Print("Ответ с кодом HTTP 204 No Content")
+		log.Printf("В системе лояльности получен код: %d", http.StatusNoContent)
 		return nil
 	case http.StatusInternalServerError:
-		log.Print("Ответ с кодом HTTP 500 Internal Server Error")
+		log.Printf("В системе лояльности получен код: %d", http.StatusInternalServerError)
 		return fmt.Errorf("ошибка сервера начислений")
 	case http.StatusTooManyRequests:
+		log.Printf("В системе лояльности получен код: %d", http.StatusTooManyRequests)
 		return fmt.Errorf("превышено количество запросов")
 	default:
-		//return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
+		log.Printf("В системе лояльности получен код: %d", resp.StatusCode)
+		return fmt.Errorf("неожиданный статус ответа: %d", resp.StatusCode)
 	}
 
-	log.Print("В UpdateOrderInfo читаем тело ответа")
 	// Читаем тело ответа
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("ошибка при чтении ответа: %w", err)
+		log.Printf("Ошибка при чтении тела ответа из системы лояльности. \nERR: %v", err)
+		return fmt.Errorf("ошибка при чтении ответа: %v", err)
 	}
-
-	log.Printf("В UpdateOrderInfo Десериализуем JSON %s", body)
 
 	// Десериализуем JSON
 	if err := json.Unmarshal(body, &orderFromAccrualSystem); err != nil {
-		log.Printf("В UpdateOrderInfo внутри json.Unmarshal. %s", err)
-
-		return fmt.Errorf("ошибка при разборе JSON: %w", err)
+		log.Printf("Ошибка при Unmarshal JSON. \nERR: %v", err)
+		return fmt.Errorf("ошибка при разборе JSON: %v", err)
 	}
-
-	log.Print("В UpdateOrderInfo Обновляем статус заказа и баланс пользователя")
 
 	// Обновляем статус заказа и баланс пользователя
 	if err := updateOrderStatus(db, orderFromAccrualSystem); err != nil {
+		log.Printf("Ошибка при обновлении статуса заказа. \nERR: %v", err)
 		return fmt.Errorf("ошибка обновления статуса заказа: %w", err)
 	}
 
-	log.Printf("Информация о заказе успешно обновлена: %+v", orderFromAccrualSystem)
+	log.Printf("Информация о заказе успешно обновлена: \n%v", orderFromAccrualSystem)
 	return nil
 }
 
@@ -99,11 +92,8 @@ func updateOrderStatus(db *gorm.DB, orderAccrual models.AccrualInfo) error {
 			"status":  orderAccrual.Status,
 			"accrual": orderAccrual.Accrual,
 		}).First(&order).Error; err != nil {
-		return fmt.Errorf("ошибка при обновлении заказа: %w", err)
+		return fmt.Errorf("ошибка при обновлении заказа: \n%w", err)
 	}
-
-	log.Printf("Заказ %s успешно обновлён со статусом %s и начислением %.2f",
-		orderAccrual.OrderNumber, orderAccrual.Status, orderAccrual.Accrual)
 
 	// Обновляем баланс пользователя
 	if err := db.Model(&models.Balance{}).
@@ -112,6 +102,6 @@ func updateOrderStatus(db *gorm.DB, orderAccrual models.AccrualInfo) error {
 		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
 	}
 
-	log.Printf("Баланс пользователя %d успешно обновлён на %.2f", order.UserID, orderAccrual.Accrual)
+	log.Printf("Баланс пользователя %d успешно обновлён на: %f", order.UserID, orderAccrual.Accrual)
 	return nil
 }

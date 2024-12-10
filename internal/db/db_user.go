@@ -9,6 +9,7 @@ import (
 // CreateUserWithBalance CreateUser создает пользователя и связанную запись в таблице баланса.
 func CreateUserWithBalance(db *gorm.DB, user *models.User) error {
 	return db.Transaction(func(tx *gorm.DB) error {
+
 		// Создаем пользователя
 		if err := tx.Create(user).Error; err != nil {
 			return err
@@ -19,7 +20,6 @@ func CreateUserWithBalance(db *gorm.DB, user *models.User) error {
 		if err := tx.Create(&balance).Error; err != nil {
 			return err
 		}
-
 		return nil
 	})
 }

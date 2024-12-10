@@ -14,22 +14,18 @@ func (h *Handler) Balance(w http.ResponseWriter, r *http.Request) {
 	username := r.Header.Get("X-Username")
 
 	// Получаем баланс пользователя
-	log.Print("В ручке Balance Отправили запрос на получение баланса")
 	balance, err := db.GetUserBalance(h.DB, username)
 	if err != nil {
-		log.Printf("В ручке Balance ошибка при получение баланса пользователя %s", err)
-		http.Error(w, "Failed to retrieve user balance", http.StatusInternalServerError)
+		log.Printf("В Balance/GetUserBalance ошибка при получении баланса пользователя %v", err)
+		http.Error(w, "ошибка при получении баланса пользователя", http.StatusInternalServerError)
 		return
 	}
-	log.Printf("В ручке Balance Отправили получили баланс %v", balance)
 
 	// Отправляем ответ
-	log.Print("В ручке Balance формируем ответ")
 	response := map[string]interface{}{
 		"current":   balance.Current,
 		"withdrawn": balance.Withdrawn,
 	}
-	log.Print("В ручке Balance устанавливаем ответ в body")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 

@@ -33,7 +33,8 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 	// Читаем номер заказа
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		log.Printf("Некорректное тело запроса \n%v", err)
+		http.Error(w, "некорректное тело запроса", http.StatusBadRequest)
 		return
 	}
 
@@ -41,22 +42,26 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем номер заказа
 	if !models.ValidLun(orderNumber) {
-		http.Error(w, "Invalid order number format", http.StatusUnprocessableEntity)
+		log.Print("В OrderPost поступил невалидный номер заказа")
+		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
 		return
 	}
 
 	// Получаем пользователя
 	if err := db.GetUserByLogin(h.DB, username, user); err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		log.Printf("В OrderPost ошибка при получении id пользователя по логину: %s", err)
+		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
 		return
 	}
 
 	// Проверяем существование заказа
 	if err := db.GetOrderByNumber(h.DB, orderNumber, &existingOrder); err == nil {
 		if existingOrder.UserID == user.ID {
-			http.Error(w, "Order already uploaded by this user", http.StatusOK)
+			log.Printf("Такой заказ уже загружен текущим пользователем: \n%v", err)
+			http.Error(w, "Такой заказ уже загружен текущим пользователем", http.StatusOK)
 		} else {
-			http.Error(w, "Order already uploaded by another user", http.StatusConflict)
+			log.Printf("Такой заказ уже загружен другим пользователем: \n%v", err)
+			http.Error(w, "Такой заказ уже загружен другим пользователем", http.StatusConflict)
 		}
 		return
 	}
@@ -67,13 +72,12 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 		UserID:      user.ID,
 	}
 
-	log.Printf("В OrderPost Отправляем запрос на создание заказа newOrder")
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
-		http.Error(w, "Failed to create order", http.StatusInternalServerError)
+		log.Printf("Ошибка при создании заказ: \n%v", err)
+		http.Error(w, "ошибка при создании заказа", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("В OrderPost отправляем запрос в систему лояльности")
 	go db.UpdateOrderInfo(h.DB, orderNumber, models.Config.AccrualSystemAddress)
 
 	w.WriteHeader(http.StatusAccepted)
@@ -89,35 +93,32 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по логину
-	log.Printf("В ручке OrdersGet отправляем запрос на получение id пользователя %s", username)
 	if err := db.GetUserByLogin(h.DB, username, user); err != nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+		log.Printf("В OrderGet ошибка при получении id пользователя по логину: %s", err)
+		http.Error(w, "пользователь не найден", http.StatusUnauthorized)
 		return
 	}
 
 	// Получаем заказы пользователя
 	log.Printf("В ручке OrdersGet отправляем запрос на получение заказов пользователя по id %s", user.ID)
 	if err := db.GetOrdersByUserID(h.DB, user.ID, &ordersJSON); err != nil {
-		log.Print("В ручке OrdersGet ошибка при получении заказов")
-		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
+		log.Printf("Ошибка при поиске заказов: %s", err)
+		http.Error(w, "ошибка при поиске заказов", http.StatusInternalServerError)
 		return
 	}
 
 	// Если заказы отсутствуют
-	log.Print("В ручке OrdersGet проверка на наличие заказов")
 	if len(ordersJSON) == 0 {
-		log.Print("В ручке OrdersGet заказы отсутствуют")
+		log.Print("В OrdersGet заказы отсутствуют")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
 	// Отправляем ответ
-	log.Print("В ручке OrdersGet отправляем ответ")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(ordersJSON); err != nil {
 		log.Printf("В ручке OrdersGet ошибка при Кодировании json: %s", err)
-		log.Printf("В ручке OrdersGet ошибка при Кодировании json: %v", ordersJSON)
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}

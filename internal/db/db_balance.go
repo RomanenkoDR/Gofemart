@@ -14,29 +14,27 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 	var balance models.Balance
 
 	// Ищем пользователя по логину
-	log.Printf("В ручке Balance в функции GetUserBalance ищем пользователя по логину %s", username)
 	if err := db.
 		Where("login = ?", username).
 		First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске пользователя по логину: %s", err)
+			log.Printf("В GetUserBalance ошибка при поиске пользователя по логину: %v", err)
 			return nil, gorm.ErrRecordNotFound
 		}
-		log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске пользователя по логину: %s", err)
+		log.Printf("В GetUserBalance ошибка при поиске пользователя по логину: %v", err)
 		return nil, err
 	}
 
 	// Ищем баланс пользователя по user.ID
-	log.Printf("В ручке Balance в функции GetUserBalance ищем баланс по id %v", user.ID)
 	if err := db.Where("user_id = ?", user.ID).First(&balance).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске баланса по id: %s", err)
+			log.Printf("В GetUserBalance ошибка при поиске баланса по id: %s", err)
 			return nil, gorm.ErrRecordNotFound
 		}
-		log.Printf("В ручке Balance в функции GetUserBalance ошибка при поиске баланса по id: %s", err)
+		log.Printf("В GetUserBalance ошибка при поиске баланса по id: %s", err)
 		return nil, err
 	}
-	log.Printf("В ручке Balance в функции GetUserBalance нашли баланс пользователя: %v", balance)
+	log.Printf("В GetUserBalance нашли баланс пользователя: %v", balance)
 	return &balance, nil
 }
 
@@ -47,7 +45,7 @@ func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent f
 		Where("user_id = ?", orderAccrual.UserID).
 		Update("current", balanceCurrent).
 		Update("withdrawn", balanceWithdrawn).Error; err != nil {
-		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
+		return fmt.Errorf("ошибка при обновлении баланса пользователя: %v", err)
 	}
 	return nil
 }
