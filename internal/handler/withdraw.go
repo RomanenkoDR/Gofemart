@@ -70,8 +70,10 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	balance.Current -= requestBody.Sum
+
 	// Обновляем баланс пользователя в базе данных
-	if err := db.UpdateUserBalance(h.DB, newOrder); err != nil {
+	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
