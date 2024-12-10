@@ -118,8 +118,6 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 
 	// Отправляем ответ с выводами
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(withdrawals)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(withdrawals); err != nil {
-		http.Error(w, "Ошибка при формировании ответа", http.StatusInternalServerError)
-	}
 }
