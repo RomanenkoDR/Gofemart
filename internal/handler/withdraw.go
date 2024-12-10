@@ -2,93 +2,117 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/RomanenkoDR/Gofemart/internal/db"
 	"github.com/RomanenkoDR/Gofemart/internal/models"
-	"github.com/RomanenkoDR/Gofemart/internal/services"
+	"log"
 	"net/http"
-	"time"
 )
 
 // Withdraw обрабатывает запрос на списание средств.
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
-
-	// Парсим тело запроса
-	var requestBody struct {
-		Order string `json:"order"`
-		Sum   int    `json:"sum"`
-	}
-
-	// Декодируем JSON
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
-		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
-		return
-	}
-
-	// Проверяем номер заказа (например, с помощью алгоритма Луна)
-	if !models.ValidLun(requestBody.Order) {
-		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
-		return
-	}
-
-	// Получаем пользователя по токену
 	var (
 		user    models.User
-		balance models.Balance
+		balance *models.Balance
 	)
+
+	// Структура для парсинга тела запроса
+	var requestBody struct {
+		Order string  `json:"order"`
+		Sum   float64 `json:"sum"`
+	}
+
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
+
+	// Получаем пользователя по логину
 	if err := db.GetUserByLogin(h.DB, username, &user); err != nil {
+		log.Printf("В Withdraw(POST) ошибка при получении id пользователя по логину: %s", err)
 		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
 		return
 	}
 
+	// Декодируем JSON
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при парсинге json: %s", err)
+		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
+		return
+	}
+
+	// Проверяем номер заказа алгоритмом Луна
+	if !models.ValidLun(requestBody.Order) {
+		log.Print("В Withdraw (POST) поступил невалидный номер заказа")
+		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
+		return
+	}
+
+	// Получаем баланс пользователя
+	balance, err := db.GetUserBalance(h.DB, username)
+	if err != nil {
+		log.Print("В Withdraw (POST) ошибка при получении баланса пользователя.")
+		http.Error(w, "Ошибка при получении баланса", http.StatusInternalServerError)
+		return
+	}
+
 	// Проверяем, есть ли достаточно средств на счету
-	if balance.Current < float64(requestBody.Sum) {
+	if balance.Current <= requestBody.Sum {
+		log.Print("В Withdraw (POST) ошибка при получении баланса пользователя. Недостаточно средств")
 		http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)
 		return
 	}
 
-	// Списываем средства
-	balance.Current -= float64(requestBody.Sum)
+	// Формируем модель заказа
+	newOrder := &models.Order{
+		OrderNumber: requestBody.Order,
+		UserID:      user.ID,
+		Sum:         requestBody.Sum,
+	}
+
+	// Создаем заказ в базе
+	if err := db.CreateOrder(h.DB, newOrder); err != nil {
+		log.Print("в Withdraw ошибка при создании заказ пользователя. Заказ уже есть в базе")
+		http.Error(w, "Ошибка при создании заказа", http.StatusInternalServerError)
+		return
+	}
+
+	// Обновляем current и withdranw
+	balance.Current -= requestBody.Sum
+	balance.Withdrawn += requestBody.Sum
 
 	// Обновляем баланс пользователя в базе данных
-	if err := db.UpdateUserBalance(h.DB, &user); err != nil {
+	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current, balance.Withdrawn); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
 
 	// Отправляем успешный ответ
 	w.WriteHeader(http.StatusOK)
-	fmt.Println(w, "Средства успешно списаны с баланса")
+	log.Print(w, "Средства успешно списаны с баланса")
 }
 
 // Withdrawals обрабатывает запрос на получение информации о выводах средств.
 func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
-	// Проверяем авторизацию
-	username, statusCode, err := services.СheckAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), statusCode)
-		return
-	}
+
+	var user models.User
+	// Получаем логин из запросов
+	username := r.Header.Get("X-Username")
 
 	// Получаем пользователя по имени из токена
-	var user models.User
 	if err := db.GetUserByLogin(h.DB, username, &user); err != nil {
+		log.Printf("В Withdraw (POST) ошибка при получении id пользователя по логину: %s", err)
 		http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
 		return
 	}
 
 	// Извлекаем все выводы средств пользователя
-	var withdrawals []models.Withdrawal
-	if err := db.GetWithdrawalsByUserID(h.DB, user.ID, &withdrawals); err != nil {
+	withdrawals, err := db.GetWithdrawalsByUserID(h.DB, user.ID)
+	if err != nil {
+		log.Printf("Ошибка при получении баланса в GetWithdrawalsByUserID: %v", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("В ручке Withdrawals получили баланс: %v", withdrawals)
 
 	// Если выводы отсутствуют, возвращаем статус 204
 	if len(withdrawals) == 0 {
@@ -96,19 +120,9 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Сортируем выводы по времени от новых к старым
-	// (Это будет уже сделано в SQL запросе через Order)
-	// Можно добавлять сортировку вручную, если нужно
-
-	// Преобразуем поле времени в строку формата RFC3339
-	for i := range withdrawals {
-		withdrawals[i].ProcessedAtStr = withdrawals[i].ProcessedAt.Format(time.RFC3339)
-	}
-
 	// Отправляем ответ с выводами
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(withdrawals)
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(withdrawals); err != nil {
-		http.Error(w, "Ошибка при формировании ответа", http.StatusInternalServerError)
-	}
+	log.Printf("Информация о средствах успешно отправлена пользователю. Ответ: %v", withdrawals)
 }

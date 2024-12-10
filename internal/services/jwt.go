@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 )
 
@@ -17,9 +17,9 @@ type claims struct {
 func GenerateJWT(username string) (string, error) {
 
 	// Получаем SECRET_KEY из переменной окружения
-	jwtKey := os.Getenv("SECRET_KEY")
+	jwtKey := "SECRET_KEY"
 	if jwtKey == "" {
-		return "", fmt.Errorf("SECRET_KEY is not set in environment variables")
+		return "", fmt.Errorf("SECRET_KEY не установлен в переменные окружения")
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
@@ -36,12 +36,14 @@ func GenerateJWT(username string) (string, error) {
 func СheckAuthToken(r *http.Request) (string, int, error) {
 	jwtToken := r.Header.Get("Authorization")
 
-	if jwtToken == "" {
+	if jwtToken == "" || !strings.HasPrefix(jwtToken, "Bearer ") {
 		return "", http.StatusUnauthorized, errors.New("пользователь не авторизован")
 	}
 
+	jwtToken = strings.TrimPrefix(jwtToken, "Bearer ")
+
 	t, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SECRET_KEY")), nil
+		return []byte("SECRET_KEY"), nil
 	})
 
 	switch {
