@@ -105,3 +105,6 @@
 {"level":"info","ts":1733824792.11764,"msg":"uri /api/user/balance/withdraw method POST status 200 duration 32.544602292s size 23"}
 {"level":"info","ts":1733828885.4096372,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 5.785426416s size 51"}
 {"level":"info","ts":1733829035.096044,"msg":"uri /api/user/withdrawals method GET status 200 duration 2m19.634198709s size 141"}
+{"level":"info","ts":1733830406.396405,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 10.936122916s size 51"}
+{"level":"info","ts":1733830420.138512,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 9.607936708s size 51"}
+{"level":"info","ts":1733830475.759636,"msg":"uri /api/user/balance/withdraw method POST status 200 duration 55.644795292s size 23"}

@@ -64,8 +64,6 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		Sum:         requestBody.Sum,
 	}
 
-	log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %v", newOrder)
-
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
 		log.Print("в Withdraw ошибка при создании заказ пользователя")
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
