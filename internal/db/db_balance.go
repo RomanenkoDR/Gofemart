@@ -41,7 +41,7 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 }
 
 // UpdateUserBalance обновляет баланс пользователя в базе данных.
-func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent float32) error {
+func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent float64) error {
 	if err := db.
 		Model(&models.Balance{}).
 		Where("user_id = ?", orderAccrual.UserID).
@@ -52,7 +52,7 @@ func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent f
 }
 
 // GetWithdrawalsByUserID получает все выводы средств пользователя по его ID.
-func GetWithdrawalsByUserID(db *gorm.DB, userID uint64) (withdrawals []models.WithdrawalsJSON, err error) {
+func GetWithdrawalsByUserID(db *gorm.DB, userID uint) (withdrawals []models.WithdrawalsJSON, err error) {
 	if err = db.
 		Model(&models.Order{}).
 		Where("user_id = ? AND sum IS NOT NULL AND sum != 0", userID).

@@ -21,7 +21,7 @@ func GetOrderByNumber(db *gorm.DB, orderNumber string, order *models.Order) erro
 }
 
 // GetOrdersByUserID получает заказы пользователя по ID.
-func GetOrdersByUserID(db *gorm.DB, userID uint64, orders *[]models.OrdersUserJSON) error {
+func GetOrdersByUserID(db *gorm.DB, userID uint, orders *[]models.OrdersUserJSON) error {
 	return db.Model(models.Order{}).Where("user_id = ?", userID).Order("uploaded_at DESC").Find(orders).Error
 }
 

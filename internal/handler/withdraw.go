@@ -19,7 +19,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	// Парсим тело запроса
 	var requestBody struct {
 		Order string  `json:"order"`
-		Sum   float32 `json:"sum"`
+		Sum   float64 `json:"sum"`
 	}
 
 	// Получаем логин из запросов
@@ -53,7 +53,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем, есть ли достаточно средств на счету
 	if balance.Current <= requestBody.Sum {
-		log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %s, баланс: %s", balance.Current, requestBody.Sum)
+		log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %f, баланс: %f", balance.Current, requestBody.Sum)
 		http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)
 		return
 	}
@@ -64,15 +64,18 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		Sum:         requestBody.Sum,
 	}
 
+	log.Printf("В Withdraw (POST) ошибка при получении баланса пользователя: %v", newOrder)
+
 	if err := db.CreateOrder(h.DB, newOrder); err != nil {
 		log.Print("в Withdraw ошибка при создании заказ пользователя")
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Проверка значения перед изменением баланса: %f", balance.Current)
+
+	log.Printf("Проверка значения перед изменением баланса: current %f и sum:%f", balance.Current, requestBody.Sum)
 	balance.Current -= requestBody.Sum
 
-	log.Printf("Проверка нового значения перед обновлением баланса: %f", balance.Current)
+	log.Printf("Проверка значения после изменения баланса: current %f и sum:%f", balance.Current, requestBody.Sum)
 	// Обновляем баланс пользователя в базе данных
 	if err := db.UpdateUserBalance(h.DB, newOrder, balance.Current); err != nil {
 		log.Printf("В Withdraw (POST) ошибка при обновлении баланса: %s", err)

@@ -82,8 +82,7 @@ func (h *Handler) OrdersPost(w http.ResponseWriter, r *http.Request) {
 // OrdersGet обрабатывает получение заказов пользователя.
 func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	var (
-		user = &models.User{}
-		//orders     = []models.Order{}
+		user       = &models.User{}
 		ordersJSON []models.OrdersUserJSON
 	)
 
