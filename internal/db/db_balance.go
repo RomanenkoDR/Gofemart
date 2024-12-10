@@ -40,13 +40,12 @@ func GetUserBalance(db *gorm.DB, username string) (*models.Balance, error) {
 	return &balance, nil
 }
 
-// TODO: ПОПРАВИТЬ ЭТО ГАВНО. ИСПРАВИТЬ получение sum. а сделать разниц
 // UpdateUserBalance обновляет баланс пользователя в базе данных.
 func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent float32) error {
 	if err := db.
 		Model(&models.Balance{}).
 		Where("user_id = ?", orderAccrual.UserID).
-		Update("current", gorm.Expr("current + ?", balanceCurrent)).Error; err != nil {
+		Update("current", balanceCurrent).Error; err != nil {
 		return fmt.Errorf("ошибка при обновлении баланса пользователя: %w", err)
 	}
 	return nil

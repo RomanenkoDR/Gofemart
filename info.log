@@ -89,3 +89,17 @@
 {"level":"info","ts":1733752994.7501152,"msg":"uri /api/user/orders method POST status 202 duration 14.353583ms size 23"}
 {"level":"info","ts":1733753221.583214,"msg":"uri /api/user/orders method POST status 202 duration 22.758792ms size 23"}
 {"level":"info","ts":1733753726.601263,"msg":"uri /api/user/balance method GET status 0 duration 4m0.737675459s size 61"}
+{"level":"info","ts":1733824086.574305,"msg":"uri /api/user/orders method POST status 202 duration 29.849125ms size 23"}
+{"level":"info","ts":1733824105.786288,"msg":"uri /api/user/withdrawals method GET status 401 duration 9.378ms size 67"}
+{"level":"info","ts":1733824131.367703,"msg":"uri /api/user/balance/withdraw method POST status 401 duration 9.952917ms size 67"}
+{"level":"info","ts":1733824136.46033,"msg":"uri /api/user/login method POST status 401 duration 8.616709ms size 54"}
+{"level":"info","ts":1733824151.305429,"msg":"uri /api/user/login method POST status 200 duration 111.997959ms size 23"}
+{"level":"info","ts":1733824374.511557,"msg":"uri /api/user/balance/withdraw method POST status 200 duration 3m30.183385125s size 23"}
+{"level":"info","ts":1733824437.038862,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 22.981042ms size 51"}
+{"level":"info","ts":1733824457.004394,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 21.803584ms size 51"}
+{"level":"info","ts":1733824461.837184,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 16.41625ms size 73"}
+{"level":"info","ts":1733824582.18844,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 7.990092333s size 51"}
+{"level":"info","ts":1733824622.8138611,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 17.824617667s size 73"}
+{"level":"info","ts":1733824745.200002,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 5.856343s size 51"}
+{"level":"info","ts":1733824759.5723982,"msg":"uri /api/user/balance/withdraw method POST status 500 duration 10.7410775s size 51"}
+{"level":"info","ts":1733824792.11764,"msg":"uri /api/user/balance/withdraw method POST status 200 duration 32.544602292s size 23"}
