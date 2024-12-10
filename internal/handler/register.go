@@ -29,8 +29,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	// Проверяем существование пользователя
 	exists, err := db.CheckUserExists(h.DB, user.Login)
-
-	if exists == true {
+	if err != nil {
+		http.Error(w, "внутренняя ошибка сервера", http.StatusInternalServerError)
+		return
+	}
+	if exists {
 		http.Error(w, "пользователь с таким именем уже существует", http.StatusConflict)
 		return
 	}

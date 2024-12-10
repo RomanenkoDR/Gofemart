@@ -100,7 +100,7 @@ func (h *Handler) OrdersGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем заказы пользователя
-	log.Printf("В ручке OrdersGet отправляем запрос на получение заказов пользователя по id %s", user.ID)
+	log.Printf("В ручке OrdersGet отправляем запрос на получение заказов пользователя по id %v", user.ID)
 	if err := db.GetOrdersByUserID(h.DB, user.ID, &ordersJSON); err != nil {
 		log.Printf("Ошибка при поиске заказов: %s", err)
 		http.Error(w, "ошибка при поиске заказов", http.StatusInternalServerError)
