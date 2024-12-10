@@ -104,6 +104,7 @@ func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
 	// Извлекаем все выводы средств пользователя
 	withdrawals, err := db.GetWithdrawalsByUserID(h.DB, user.ID)
 	if err != nil {
+		log.Printf("Ошибка при получении баланса в GetWithdrawalsByUserID: %v", err)
 		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
 		return
 	}

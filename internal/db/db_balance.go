@@ -54,7 +54,7 @@ func UpdateUserBalance(db *gorm.DB, orderAccrual *models.Order, balanceCurrent f
 // GetWithdrawalsByUserID получает все выводы средств пользователя по его ID.
 func GetWithdrawalsByUserID(db *gorm.DB, userID uint) (withdrawals []models.WithdrawalsJSON, err error) {
 	if err = db.
-		Model(&models.Balance{}).
+		Model(&models.Order{}).
 		Where("user_id = ? AND sum IS NOT NULL AND sum != 0", userID).
 		Order("updated_at DESC").
 		Find(&withdrawals).Error; err != nil {
